@@ -1,0 +1,124 @@
+.margin-bottom {
+    margin-bottom: 7px;
+}
+
+.product {
+    &__header {
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 55px;
+        border-top: 1px solid #ddd;
+    }
+
+    &__title {
+        margin: 0px;
+        font-size: 17px;
+        padding: 10px 20px;
+    }
+
+    &__buttons {
+        padding: 0px 20px;
+        flex: 1;
+        display: flex;
+        justify-content: end;
+    }
+
+    &__list {
+        padding: 20px;
+    }
+
+    &__navigation {
+        height: 55px;
+        margin: 0px 20px;
+        margin-top: 20px;
+        background-color: #fff;
+        padding: 0px 15px;
+    }
+
+    &__form-item {
+        margin: 0;
+    }
+
+    &__input-data {
+        background-color: #fff;
+        margin: 20px;
+        padding: 20px;
+    }
+
+    &__desc {
+        margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__label-desc {
+        padding-bottom: 8px;
+    }
+
+    &__position {
+        width: auto;
+    }
+
+    &__button-edit {
+        margin-right: 10px;
+    }
+
+    // Detail
+    &__inner-detail {
+        margin: 20px;
+        background-color: #fff;
+        padding: 20px;
+    }
+
+    &__inner-title {
+        font-weight: 600;
+        font-size: 25px;
+        margin-bottom: 20px;
+    }
+
+    &__info-product {
+        padding: 15px 20px;
+        background-color: #E9EAF1;
+    }
+
+    &__info-header {
+        font-weight: 500;
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    &__status {
+        margin-bottom: 7px;
+    }
+
+    &__label {
+        font-weight: 500;
+        font-size: 15px;
+    }
+
+    &__content {
+        font-weight: 700;
+        font-size: 15px;
+
+        &--active {
+            color: #49c938;
+        }
+
+        &--inactive {
+            color: rgba(238, 0, 0, 0.938);
+        }
+    }
+    // End Detail
+}
+
+.row-height {
+    height: 100%;
+}
+
+.table {
+    &__image {
+        width: 80px;
+    }
+}
