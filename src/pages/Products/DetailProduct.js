@@ -13,6 +13,7 @@ function DetailProduct() {
         setData(result.product);
     };
 
+
     useEffect(() => {
         fetchAPI();
     }, []);

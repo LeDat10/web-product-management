@@ -69,6 +69,8 @@ function EditCategory() {
 
         if (editorRef.current.getContent()) {
             formData.append("description", editorRef.current.getContent());
+        } else {
+            formData.append("description", "");
         };
 
         const result = await editCategory(params.id, formData);

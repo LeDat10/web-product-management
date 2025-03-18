@@ -87,6 +87,8 @@ function EditProduct() {
 
         if (editorRef.current.getContent()) {
             formData.append("description", editorRef.current.getContent());
+        } else {
+            formData.append("description", "");
         };
 
         const result = await editProduct(params.id, formData);

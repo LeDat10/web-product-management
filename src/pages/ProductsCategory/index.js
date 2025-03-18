@@ -36,7 +36,7 @@ function ProductsCategory() {
             title: "Tiêu đề",
             dataIndex: "title",
             key: "title",
-            render: (title, record) => <Link to={`/admin/products/detail/${record._id}`} >{title}</Link>
+            render: (title, record) => <Link to={`/admin/products-category/detail/${record._id}`} >{title}</Link>
         },
         {
             title: "Ảnh",
