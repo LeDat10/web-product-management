@@ -5,6 +5,8 @@ import CreateProduct from "../pages/Products/CreateProduct";
 import DetailProduct from "../pages/Products/DetailProduct";
 import EditProduct from "../pages/Products/EditProduct";
 import ProductsCategory from "../pages/ProductsCategory";
+import CreateCategory from "../pages/ProductsCategory/CreateCategory";
+import EditCategory from "../pages/ProductsCategory/EditCategory";
 
 export const routes = [
     {
@@ -42,6 +44,14 @@ export const routes = [
                     {
                         index: true,
                         element: <ProductsCategory />
+                    },
+                    {
+                        path: "create",
+                        element: <CreateCategory />
+                    },
+                    {
+                        path: "edit/:id",
+                        element: <EditCategory />
                     }
                 ]
             }

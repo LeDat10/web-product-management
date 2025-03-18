@@ -1,69 +1,22 @@
 import { Button, Form, Input, InputNumber, message, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { editProduct, getDetailProduct } from "../../services/productServices";
-import { useEffect, useRef, useState } from "react";
+import { createCategory } from "../../services/categoryServices";
+import { useRef } from "react";
 import { Editor } from '@tinymce/tinymce-react';
-import { useParams } from "react-router-dom";
 import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
-import { processThumbnail } from "../../helper/processThumbnail";
 
-function EditProduct() {
+
+function CreateCategory() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
-    const [data, setData] = useState({});
-    const params = useParams();
-
-    const fetchAPI = async () => {
-        const result = await getDetailProduct(params.id);
-        setData(result.product);
-    };
-
-    useEffect(() => {
-        fetchAPI();
-    }, []);
-
-    if (Object.keys(data).length > 0) {
-        if (data.status === "active") {
-            data.status = true;
-        } else if (data.status === "inactive") {
-            data.status = false;
-        };
-
-        if (data.featured === "1") {
-            data.featured = true;
-        } else if (data.featured === "0") {
-            data.featured = false;
-        }
-    };
-
-    useEffect(() => {
-        const formInitialValues = async () => {
-            if (Object.keys(data).length > 0) {
-                form.setFieldsValue({
-                    title: data.title || "",
-                    price: data.price || 0,
-                    stock: data.stock || 0,
-                    discountPercentage: data.discountPercentage || 0,
-                    status: data.status || false,
-                    thumbnail: await processThumbnail(data.thumbnail),
-                    position: data.position || 0,
-                    featured: data.featured || false
-                })
-            }
-        }
-
-        formInitialValues();
-    }, [data]);
-
-
 
     const handleSubmit = async (data) => {
         const formData = new FormData();
 
         for (const key in data) {
             if (key === "thumbnail") {
-                if (data[key].length > 0) {
+                if (data[key]) {
                     formData.append("thumbnail", data.thumbnail[0].originFileObj);
                 } else {
                     formData.append("thumbnail", "");
@@ -74,11 +27,9 @@ function EditProduct() {
                 } else {
                     formData.append("status", "inactive");
                 }
-            } else if (key === "featured") {
+            } else if (key === "position") {
                 if (data[key]) {
-                    formData.append("featured", "1");
-                } else {
-                    formData.append("featured", "0");
+                    formData.append("position", data[key]);
                 }
             } else {
                 formData.append(key, data[key]);
@@ -89,69 +40,50 @@ function EditProduct() {
             formData.append("description", editorRef.current.getContent());
         };
 
-        const result = await editProduct(params.id, formData);
+        const result = await createCategory(formData);
         if (result.code === 200) {
-            message.success("Cập nhật sản phẩm thành công!");
+            message.success("Tạo danh mục mới thành công!");
+            form.resetFields();
         } else {
-            message.error("Cập nhật sản phẩm thất bại!");
+            message.error("Tạo danh mục mới thất bại!");
         }
-    };
+    }
 
     return (
         <>
-            <div className="product__edit">
+            <div className="category__create">
                 <Form
-                    className="product__form"
+                    className="category__form"
                     form={form}
                     layout="vertical"
                     onFinish={handleSubmit}
                     initialValues={{
-                        title: data.title || "",
-                        price: data.price || 0,
-                        stock: data.stock || 0,
-                        discountPercentage: data.discountPercentage || 0,
-                        status: data.status || false,
-                        thumbnail: data.thumbnail
-                            ? [{ uid: '-1', name: 'image.png', status: 'done', url: data.thumbnail }]
-                            : [],
-                        position: data.position || 0
-
+                        status: true
                     }}
                 >
-                    <div className="product__header">
-                        <h5 className="product__title">
-                            Cập nhật sản phẩm
+                    <div className="category__header">
+                        <h5 className="category__title">
+                            Tạo mới danh mục
                         </h5>
 
-                        <div className="product__buttons">
-                            <Form.Item className="product__form-item">
-                                <Button type='primary' htmlType="submit">Cập nhật</Button>
+                        <div className="category__buttons">
+                            <Form.Item className="category__form-item">
+                                <Button type='primary' htmlType="submit">Tạo danh mục</Button>
                             </Form.Item>
                         </div>
                     </div>
 
 
-                    <div className="product__input-data">
+                    <div className="category__input-data">
                         <Form.Item
-                            label="Tiêu đề sản phẩm"
+                            label="Tiêu đề danh mục"
                             name="title"
                         >
                             <Input />
                         </Form.Item>
 
-                        <Form.Item
-                            label="Sản phẩm nổi bật"
-                            name="featured"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Nổi bật"
-                                unCheckedChildren="Không"
-                            />
-                        </Form.Item>
-
-                        <div className="product__desc">
-                            <label className="product__label-desc">Mô tả sản phẩm</label>
+                        <div className="category__desc">
+                            <label className="category__label-desc">Mô tả danh mục</label>
                             <Editor
                                 apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
                                 onInit={(_evt, editor) => editorRef.current = editor}
@@ -171,35 +103,13 @@ function EditProduct() {
                                         { value: 'Email', title: 'Email' },
                                     ],
                                     ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
-                                    file_picker_callback: handlePickerCallback,
+                                    file_picker_callback: handlePickerCallback
                                 }}
-                                initialValue={data.description || ""}
                             />
                         </div>
 
-                        <Form.Item
-                            label="Giá"
-                            name="price"
-                        >
-                            <InputNumber min={0} step={0.01} />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Giảm giá"
-                            name="discountPercentage"
-                        >
-                            <InputNumber min={0} max={100} step={0.01} />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Số lượng"
-                            name="stock"
-                        >
-                            <InputNumber min={0} />
-                        </Form.Item>
-
                         <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                            <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*"  beforeUpload={(file) => checkImage(file, Upload)}>
+                            <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
                                 <button
                                     style={{
                                         color: 'inherit',
@@ -225,7 +135,7 @@ function EditProduct() {
                             label="Vị trí"
                             name="position"
                         >
-                            <InputNumber name="position" min={1} placeholder="Tự động tăng" className="product__position" />
+                            <InputNumber min={1} placeholder="Tự động tăng" className="category__position" />
                         </Form.Item>
 
                         <Form.Item
@@ -245,4 +155,4 @@ function EditProduct() {
     );
 };
 
-export default EditProduct;
+export default CreateCategory;

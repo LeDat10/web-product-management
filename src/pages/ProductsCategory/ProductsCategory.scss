@@ -1,4 +1,5 @@
-.products-category {
+.category {
+
     &__header {
         background-color: #fff;
         display: flex;
@@ -20,4 +21,47 @@
         display: flex;
         justify-content: end;
     }
+
+    &__list {
+        padding: 20px;
+    }
+
+
+    // create
+    &__form-item {
+        margin: 0;
+    }
+
+    &__input-data {
+        background-color: #fff;
+        margin: 20px;
+        padding: 20px;
+    }
+
+    &__desc {
+        margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__label-desc {
+        padding-bottom: 8px;
+    }
+
+    &__position {
+        width: auto;
+    }
+
+    // end create
+
+    // navigation
+    &__navigation {
+        height: 55px;
+        margin: 0px 20px;
+        margin-top: 20px;
+        background-color: #fff;
+        padding: 0px 15px;
+    }
+
+    // end navigation
 }

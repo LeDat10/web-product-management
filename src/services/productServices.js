@@ -7,8 +7,6 @@ const objParams = {
     sortValue: ""
 };
 export const getProducts = async (params) => {
-
-
     if (params.keyword) {
         objParams.keyword = params.keyword;
     } else if (params.keyword === "") {
@@ -32,7 +30,7 @@ export const getProducts = async (params) => {
     return result;
 };
 
-export const changeStatus = async (id, option) => {
+export const changeStatusProduct = async (id, option) => {
     const result = await patch(`products/change-status/${id}`, option);
     return result;
 };
@@ -42,7 +40,7 @@ export const deleteProduct = async (id) => {
     return result;
 };
 
-export const changeMulti = async (option) => {
+export const changeMultiProduct = async (option) => {
     const result = await patch("products/change-multi", option);
     return result;
 };

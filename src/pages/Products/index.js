@@ -3,13 +3,15 @@ import './Products.scss';
 import { Button, Table, InputNumber, Row, Col } from 'antd';
 import { EditOutlined } from "@ant-design/icons";
 import { useEffect, useState } from 'react';
-import ChangeStatus from './ChangeStatus';
 import { getProducts } from '../../services/productServices';
 import DeleteProduct from './DeleteProduct';
 import InputSearch from '../../Components/InputSearch';
 import ChangeMulti from "../../Components/ChangeMulti";
 import FilterStatus from '../../Components/FilterStatus';
 import Sort from '../../Components/Sort';
+import ChangeStatus from '../../Components/ChangeStatus';
+import { changeStatusProduct } from '../../services/productServices';
+import { changeMultiProduct } from '../../services/productServices';
 
 function Products() {
     const [data, setData] = useState([]);
@@ -58,7 +60,7 @@ function Products() {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            render: (value, record) => <ChangeStatus status={value} id={record._id} onReload={handleReload} />
+            render: (value, record) => <ChangeStatus status={value} id={record._id} onReload={handleReload} changeStatus={changeStatusProduct} />
         },
         {
             title: "Hành động",
@@ -74,7 +76,7 @@ function Products() {
                 </>
             )
         }
-    ]
+    ];
 
     const filterStatusOptions = [
         {
@@ -241,6 +243,7 @@ function Products() {
                             selectedRowKeys={selectedRowKeys}
                             getSelectedProducts={getSelectedProducts}
                             rowKeysEmpty={setRowKeysEmpty}
+                            changeMulti={changeMultiProduct}
                         />
                     </div>
                 </div>

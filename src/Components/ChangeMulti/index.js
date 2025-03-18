@@ -1,10 +1,9 @@
-import { changeMulti } from "../../services/productServices";
 import { Button, Select, message, Popconfirm } from 'antd';
 import { useState } from "react";
 import './ChangeMulti.scss';
 
 function ChangeMulti(props) {
-    const {changeMultiOption, onReload, selectedRowKeys, getSelectedProducts, rowKeysEmpty} = props;
+    const {changeMultiOption, onReload, selectedRowKeys, getSelectedProducts, rowKeysEmpty, changeMulti} = props;
 
     const [keyAction, setKeyAction] = useState("");
 

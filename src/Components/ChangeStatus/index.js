@@ -1,9 +1,9 @@
 import { Tag, message } from "antd";
-import { changeStatus } from "../../services/productServices";
 
 function ChangeStatus(props) {
-    const { status, id, onReload } = props;
+    const { status, id, onReload, changeStatus } = props;
     const [messageApi, contextHolder] = message.useMessage();
+
     const success = () => {
         messageApi.open({
             type: 'success',
