@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom';
 import './Products.scss';
-import { Button, Table, InputNumber, Row, Col } from 'antd';
+import { Button, Table, InputNumber, Row, Col, Select, Tag } from 'antd';
 import { EditOutlined } from "@ant-design/icons";
 import { useEffect, useState } from 'react';
 import { getProducts } from '../../services/productServices';
-import DeleteProduct from './DeleteProduct';
 import InputSearch from '../../Components/InputSearch';
 import ChangeMulti from "../../Components/ChangeMulti";
 import FilterStatus from '../../Components/FilterStatus';
@@ -12,15 +11,27 @@ import Sort from '../../Components/Sort';
 import ChangeStatus from '../../Components/ChangeStatus';
 import { changeStatusProduct } from '../../services/productServices';
 import { changeMultiProduct } from '../../services/productServices';
+import { getCategory } from '../../services/categoryServices';
+import Delete from '../../Components/Delete';
+import { deleteProduct } from '../../services/productServices';
+import useAuth from '../../helper/useAuth';
 
 function Products() {
     const [data, setData] = useState([]);
     const [reload, setReload] = useState(false);
     const [positions, setPositions] = useState({});
+    const [category, setCategory] = useState([]);
+
+    const permissions = useAuth();
 
     const fetchAPI = async (params = {}) => {
         const result = await getProducts(params);
         setData(result.products);
+    };
+
+    const fetchCategoryAPI = async () => {
+        const result = await getCategory({ status: "active" });
+        setCategory(result.category);
     };
 
     const handleReload = () => {
@@ -30,6 +41,21 @@ function Products() {
     useEffect(() => {
         fetchAPI();
     }, [reload]);
+
+    useEffect(() => {
+        fetchCategoryAPI();
+    }, []);
+
+    const categoryOpitons = [
+        {
+            value: "",
+            label: "-- Danh mục --",
+        },
+        ...category.map(item => ({
+            value: item._id,
+            label: `-- ${item.title} --`
+        }))
+    ];
 
     const columns = [
         {
@@ -60,19 +86,35 @@ function Products() {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            render: (value, record) => <ChangeStatus status={value} id={record._id} onReload={handleReload} changeStatus={changeStatusProduct} />
+            render: (value, record) => (
+                <>
+                    {permissions.includes('products_edit') ? (
+                        <ChangeStatus status={value} id={record._id} onReload={handleReload} changeStatus={changeStatusProduct} />
+                    ) : (
+                        value === "active" ? (
+                            <Tag color='success'>Hoạt động</Tag>
+                        ) : (
+                            <Tag color='error'>Dừng hoạt động</Tag>
+                        )
+                    )}
+                </>
+            )
         },
         {
             title: "Hành động",
             key: "actions",
             render: (value, record) => (
                 <>
-                    <Link to={`/admin/products/edit/${record._id}`} className='product__button-edit'>
-                        <Button type='primary' icon={<EditOutlined />}>
-                            Chỉnh sửa
-                        </Button>
-                    </Link>
-                    <DeleteProduct id={record._id} onReload={handleReload} />
+                    {permissions.includes('products_edit') && (
+                        <Link to={`/admin/products/edit/${record._id}`} className='product__button-edit'>
+                            <Button type='primary' icon={<EditOutlined />}>
+                                Chỉnh sửa
+                            </Button>
+                        </Link>
+                    )}
+                    {permissions.includes('products_delete') && (
+                        <Delete id={record._id} onReload={handleReload} functionDelete={deleteProduct} textConfirm={"Bạn có muốn xóa sản phẩm này không?"} />
+                    )}
                 </>
             )
         }
@@ -224,49 +266,63 @@ function Products() {
         });
     };
 
+    const handleChangeCategory = (value) => {
+        fetchAPI({
+            categoryId: value
+        });
+    }
+
     return (
         <>
-            <div className="product">
-                <div className="product__header">
-                    <h5 className="product__title">
-                        Danh sách sản phẩm
-                    </h5>
+            {permissions.includes('products_view') && (
+                <div className="product">
+                    <div className="product__header">
+                        <h5 className="product__title">
+                            Danh sách sản phẩm
+                        </h5>
 
-                    <div className="product__buttons">
-                        <Link to={"/admin/products/create"}>
-                            <Button type='primary'>+ Thêm sản phẩm</Button>
-                        </Link>
+                        <div className="product__buttons">
+                            {permissions.includes('products_create') && (
+                                <Link to={"/admin/products/create"}>
+                                    <Button type='primary'>+ Thêm sản phẩm</Button>
+                                </Link>
+                            )}
 
-                        <ChangeMulti
-                            changeMultiOption={changeMultiOption}
-                            onReload={handleReload}
-                            selectedRowKeys={selectedRowKeys}
-                            getSelectedProducts={getSelectedProducts}
-                            rowKeysEmpty={setRowKeysEmpty}
-                            changeMulti={changeMultiProduct}
-                        />
+                            {permissions.includes('products_edit') && (
+                                <ChangeMulti
+                                    changeMultiOption={changeMultiOption}
+                                    onReload={handleReload}
+                                    selectedRowKeys={selectedRowKeys}
+                                    getSelectedProducts={getSelectedProducts}
+                                    rowKeysEmpty={setRowKeysEmpty}
+                                    changeMulti={changeMultiProduct}
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className='product__navigation'>
+                        <Row className='row-height' gutter={20} align={'middle'}>
+                            <Col span={6}>
+                                <InputSearch onSearch={handleSearch} />
+                            </Col>
+                            <Col span={6}>
+                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleChangeStatus} />
+                            </Col>
+                            <Col span={6}>
+                                <Sort sortOptions={sortOptions} handleSort={handleSort} />
+                            </Col>
+                            <Col span={6}>
+                                <Select className='product__filter-category' options={categoryOpitons} defaultValue={""} onChange={handleChangeCategory} />
+                            </Col>
+                        </Row>
+                    </div>
+
+                    <div className='product__list'>
+                        <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" />
                     </div>
                 </div>
-
-                <div className='product__navigation'>
-                    <Row className='row-height' gutter={20} align={'middle'}>
-                        <Col span={6}>
-                            <InputSearch onSearch={handleSearch} />
-                        </Col>
-                        <Col span={6}>
-                            <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleChangeStatus} />
-                        </Col>
-                        <Col span={6}>
-                            <Sort sortOptions={sortOptions} handleSort={handleSort} />
-                        </Col>
-                        <Col span={6}>Mục 4</Col>
-                    </Row>
-                </div>
-
-                <div className='product__list'>
-                    <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" />
-                </div>
-            </div>
+            )}
         </>
     );
 };

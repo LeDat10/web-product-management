@@ -1,4 +1,4 @@
-import { get, post, patch } from "../utils/request"
+import { get, post, patch, del } from "../utils/request"
 
 const objParams = {
     keyword: "",
@@ -54,3 +54,8 @@ export const editCategory = async (id, option) => {
     const result = await patch(`products-category/edit/${id}`, option);
     return result;
 };
+
+export const deleteCategory = async (id) => {
+    const result = await del(`products-category/delete/${id}`);
+    return result;
+}

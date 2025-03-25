@@ -1,14 +1,39 @@
-import { Button, Form, Input, InputNumber, message, Switch, Upload } from "antd";
+import { Button, Col, Form, Input, InputNumber, message, Row, Select, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { createProduct } from "../../services/productServices";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Editor } from '@tinymce/tinymce-react';
 import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
+import { getCategory } from "../../services/categoryServices";
+import useAuth from "../../helper/useAuth";
 
 function CreateProduct() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
+    const [category, setCategory] = useState([]);
+
+    const fetchAPI = async () => {
+        const result = await getCategory({ status: "active" });
+        setCategory(result.category);
+    };
+
+    const permissions = useAuth();
+
+    useEffect(() => {
+        fetchAPI();
+    }, []);
+
+    const categoryOpitons = [
+        {
+            value: "",
+            label: "-- Danh mục --",
+        },
+        ...category.map(item => ({
+            value: item._id,
+            label: `-- ${item.title} --`
+        }))
+    ];
 
     const handleSubmit = async (data) => {
         const formData = new FormData();
@@ -51,6 +76,7 @@ function CreateProduct() {
         if (result.code === 200) {
             message.success("Tạo sản phẩm mới thành công!");
             form.resetFields();
+            editorRef.current.setContent("");
         } else {
             message.error("Tạo sản phẩm mới thất bại!");
         }
@@ -58,142 +84,161 @@ function CreateProduct() {
 
     return (
         <>
-            <div className="product__create">
-                <Form
-                    className="product__form"
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleSubmit}
-                    initialValues={{
-                        price: 0,
-                        stock: 0,
-                        discountPercentage: 0,
-                        status: true,
-                        featured: false
-                    }}
-                >
-                    <div className="product__header">
-                        <h5 className="product__title">
-                            Tạo mới sản phẩm
-                        </h5>
+            {permissions.includes("products_create") && (
+                <div className="product__create">
+                    <Form
+                        className="product__form"
+                        form={form}
+                        layout="vertical"
+                        onFinish={handleSubmit}
+                        initialValues={{
+                            title: "",
+                            price: 0,
+                            stock: 0,
+                            discountPercentage: 0,
+                            status: true,
+                            featured: false,
+                            categoryId: ""
+                        }}
+                    >
+                        <div className="product__header">
+                            <h5 className="product__title">
+                                Tạo mới sản phẩm
+                            </h5>
 
-                        <div className="product__buttons">
-                            <Form.Item className="product__form-item">
-                                <Button type='primary' htmlType="submit">Tạo sản phẩm</Button>
+                            <div className="product__buttons">
+                                <Form.Item className="product__form-item">
+                                    <Button type='primary' htmlType="submit">Tạo sản phẩm</Button>
+                                </Form.Item>
+                            </div>
+                        </div>
+
+
+                        <div className="product__input-data">
+                            <Form.Item
+                                label="Tiêu đề sản phẩm"
+                                name="title"
+                            >
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Danh mục sản phẩm"
+                                name="categoryId"
+                            >
+                                <Select options={categoryOpitons} />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Sản phẩm nổi bật"
+                                name="featured"
+                                valuePropName="checked"
+                            >
+                                <Switch
+                                    checkedChildren="Nổi bật"
+                                    unCheckedChildren="Không"
+                                />
+                            </Form.Item>
+
+                            <div className="product__desc">
+                                <label className="product__label-desc">Mô tả sản phẩm</label>
+                                <Editor
+                                    apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
+                                    onInit={(_evt, editor) => editorRef.current = editor}
+                                    init={{
+                                        plugins: [
+                                            // Core editing features
+                                            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount', 'code',
+                                            // Your account includes a free trial of TinyMCE premium features
+                                            // Try the most popular premium features until Mar 29, 2025:
+                                            'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
+                                        ],
+                                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                                        tinycomments_mode: 'embedded',
+                                        tinycomments_author: 'Author name',
+                                        mergetags_list: [
+                                            { value: 'First.Name', title: 'First Name' },
+                                            { value: 'Email', title: 'Email' },
+                                        ],
+                                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
+                                        file_picker_callback: handlePickerCallback
+                                    }}
+                                />
+                            </div>
+
+
+                            <Row>
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Giá"
+                                        name="price"
+                                    >
+                                        <InputNumber min={0} step={0.01} />
+                                    </Form.Item>
+                                </Col>
+
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Giảm giá"
+                                        name="discountPercentage"
+                                    >
+                                        <InputNumber min={0} max={100} step={0.01} />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Số lượng"
+                                        name="stock"
+                                    >
+                                        <InputNumber min={0} />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
+                            <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
+                                <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
+                                    <button
+                                        style={{
+                                            color: 'inherit',
+                                            cursor: 'inherit',
+                                            border: 0,
+                                            background: 'none',
+                                        }}
+                                        type="button"
+                                    >
+                                        <PlusOutlined />
+                                        <div
+                                            style={{
+                                                marginTop: 8,
+                                            }}
+                                        >
+                                            Upload
+                                        </div>
+                                    </button>
+                                </Upload>
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Vị trí"
+                                name="position"
+                            >
+                                <InputNumber min={1} placeholder="Tự động tăng" className="product__position" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Trạng thái"
+                                name="status"
+                                valuePropName="checked"
+                            >
+                                <Switch
+                                    checkedChildren="Hoạt động"
+                                    unCheckedChildren="Dừng hoạt động"
+                                />
                             </Form.Item>
                         </div>
-                    </div>
-
-
-                    <div className="product__input-data">
-                        <Form.Item
-                            label="Tiêu đề sản phẩm"
-                            name="title"
-                        >
-                            <Input />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Sản phẩm nổi bật"
-                            name="featured"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Nổi bật"
-                                unCheckedChildren="Không"
-                            />
-                        </Form.Item>
-
-                        <div className="product__desc">
-                            <label className="product__label-desc">Mô tả sản phẩm</label>
-                            <Editor
-                                apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
-                                onInit={(_evt, editor) => editorRef.current = editor}
-                                init={{
-                                    plugins: [
-                                        // Core editing features
-                                        'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount', 'code',
-                                        // Your account includes a free trial of TinyMCE premium features
-                                        // Try the most popular premium features until Mar 29, 2025:
-                                        'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
-                                    ],
-                                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                                    tinycomments_mode: 'embedded',
-                                    tinycomments_author: 'Author name',
-                                    mergetags_list: [
-                                        { value: 'First.Name', title: 'First Name' },
-                                        { value: 'Email', title: 'Email' },
-                                    ],
-                                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
-                                    file_picker_callback: handlePickerCallback
-                                }}
-                            />
-                        </div>
-
-                        <Form.Item
-                            label="Giá"
-                            name="price"
-                        >
-                            <InputNumber min={0} step={0.01} />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Giảm giá"
-                            name="discountPercentage"
-                        >
-                            <InputNumber min={0} max={100} step={0.01} />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Số lượng"
-                            name="stock"
-                        >
-                            <InputNumber min={0} />
-                        </Form.Item>
-
-                        <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                            <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
-                                <button
-                                    style={{
-                                        color: 'inherit',
-                                        cursor: 'inherit',
-                                        border: 0,
-                                        background: 'none',
-                                    }}
-                                    type="button"
-                                >
-                                    <PlusOutlined />
-                                    <div
-                                        style={{
-                                            marginTop: 8,
-                                        }}
-                                    >
-                                        Upload
-                                    </div>
-                                </button>
-                            </Upload>
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Vị trí"
-                            name="position"
-                        >
-                            <InputNumber min={1} placeholder="Tự động tăng" className="product__position" />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Trạng thái"
-                            name="status"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Hoạt động"
-                                unCheckedChildren="Dừng hoạt động"
-                            />
-                        </Form.Item>
-                    </div>
-                </Form>
-            </div>
+                    </Form>
+                </div>
+            )}
         </>
     );
 };

@@ -1,8 +1,8 @@
-import { Button, Col, InputNumber, Row, Table } from "antd";
+import { Button, Col, InputNumber, Row, Table, Tag } from "antd";
 import { Link } from "react-router-dom";
 import './ProductsCategory.scss';
 import { useEffect, useState } from "react";
-import { getCategory } from "../../services/categoryServices";
+import { deleteCategory, getCategory } from "../../services/categoryServices";
 import { EditOutlined } from "@ant-design/icons";
 import ChangeStatus from "../../Components/ChangeStatus";
 import { changeStatusCategory } from "../../services/categoryServices";
@@ -11,12 +11,16 @@ import FilterStatus from "../../Components/FilterStatus";
 import Sort from "../../Components/Sort";
 import { changeMultiCategory } from "../../services/categoryServices";
 import ChangeMulti from "../../Components/ChangeMulti";
+import Delete from "../../Components/Delete";
+import useAuth from "../../helper/useAuth";
 
 function ProductsCategory() {
     const [data, setData] = useState([]);
     const [reload, setReload] = useState(false);
     const [positions, setPositions] = useState({});
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+
+    const permissions = useAuth();
 
     const fetchAPI = async (params = {}) => {
         const result = await getCategory(params);
@@ -54,19 +58,35 @@ function ProductsCategory() {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            render: (value, record) => <ChangeStatus status={value} id={record._id} onReload={handleReload} changeStatus={changeStatusCategory} />
+            render: (value, record) => (
+                <>
+                    {permissions.includes("products-category_edit") ? (
+                        <ChangeStatus status={value} id={record._id} onReload={handleReload} changeStatus={changeStatusCategory} />
+                    ) : (
+                        value === "active" ? (
+                            <Tag color='success'>Hoạt động</Tag>
+                        ) : (
+                            <Tag color='error'>Dừng hoạt động</Tag>
+                        )
+                    )}
+                </>
+            )
         },
         {
             title: "Hành động",
             key: "actions",
             render: (value, record) => (
                 <>
-                    <Link to={`/admin/products-category/edit/${record._id}`} className='product__button-edit'>
-                        <Button type='primary' icon={<EditOutlined />}>
-                            Chỉnh sửa
-                        </Button>
-                    </Link>
-                    {/* <DeleteProduct id={record._id} onReload={handleReload} /> */}
+                    {permissions.includes("products-category_edit") && (
+                        <Link to={`/admin/products-category/edit/${record._id}`} className='product__button-edit'>
+                            <Button type='primary' icon={<EditOutlined />}>
+                                Chỉnh sửa
+                            </Button>
+                        </Link>
+                    )}
+                    {permissions.includes("products-category_delete") && (
+                        <Delete id={record._id} onReload={handleReload} functionDelete={deleteCategory} textConfirm={"Bạn có muốn xóa danh mục này không?"} />
+                    )}
                 </>
             )
         }
@@ -195,46 +215,52 @@ function ProductsCategory() {
 
     return (
         <>
-            <div className="category">
-                <div className="category__header">
-                    <h5 className="category__title">
-                        Danh mục sản phẩm
-                    </h5>
+            {permissions.includes("products-category_view") && (
+                <div className="category">
+                    <div className="category__header">
+                        <h5 className="category__title">
+                            Danh mục sản phẩm
+                        </h5>
 
-                    <div className="category__buttons">
-                        <Link to={"/admin/products-category/create"}>
-                            <Button type='primary'>+ Thêm danh mục</Button>
-                        </Link>
+                        <div className="category__buttons">
+                            {permissions.includes("products-category_create") && (
+                                <Link to={"/admin/products-category/create"}>
+                                    <Button type='primary'>+ Thêm danh mục</Button>
+                                </Link>
+                            )}
 
-                        <ChangeMulti
-                            changeMultiOption={changeMultiOption}
-                            onReload={handleReload}
-                            selectedRowKeys={selectedRowKeys}
-                            getSelectedProducts={getSelectedProducts}
-                            rowKeysEmpty={setRowKeysEmpty}
-                            changeMulti={changeMultiCategory}
-                        />
+                            {permissions.includes("products-category_edit") && (
+                                <ChangeMulti
+                                    changeMultiOption={changeMultiOption}
+                                    onReload={handleReload}
+                                    selectedRowKeys={selectedRowKeys}
+                                    getSelectedProducts={getSelectedProducts}
+                                    rowKeysEmpty={setRowKeysEmpty}
+                                    changeMulti={changeMultiCategory}
+                                />
+                            )}
+                        </div>
+                    </div>
+
+                    <div className='category__navigation'>
+                        <Row className='row-height' gutter={20} align={'middle'}>
+                            <Col span={6}>
+                                <InputSearch onSearch={handleSearch} />
+                            </Col>
+                            <Col span={6}>
+                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleChangeStatus} />
+                            </Col>
+                            <Col span={6}>
+                                <Sort sortOptions={sortOptions} handleSort={handleSort} />
+                            </Col>
+                        </Row>
+                    </div>
+
+                    <div className='category__list'>
+                        <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" />
                     </div>
                 </div>
-
-                <div className='category__navigation'>
-                    <Row className='row-height' gutter={20} align={'middle'}>
-                        <Col span={6}>
-                            <InputSearch onSearch={handleSearch} />
-                        </Col>
-                        <Col span={6}>
-                            <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleChangeStatus} />
-                        </Col>
-                        <Col span={6}>
-                            <Sort sortOptions={sortOptions} handleSort={handleSort} />
-                        </Col>
-                    </Row>
-                </div>
-
-                <div className='category__list'>
-                    <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" />
-                </div>
-            </div>
+            )}
         </>
     );
 };

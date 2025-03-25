@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber, message, Switch, Upload } from "antd";
+import { Button, Col, Form, Input, InputNumber, message, Row, Select, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { editProduct, getDetailProduct } from "../../services/productServices";
 import { useEffect, useRef, useState } from "react";
@@ -7,21 +7,40 @@ import { useParams } from "react-router-dom";
 import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
 import { processThumbnail } from "../../helper/processThumbnail";
+import { getCategory } from "../../services/categoryServices";
+import { permissions } from "../../services/rolesServices";
+import useAuth from "../../helper/useAuth";
 
 function EditProduct() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
     const [data, setData] = useState({});
     const params = useParams();
+    const [category, setCategory] = useState([]);
+
+    const permissions = useAuth();
 
     const fetchAPI = async () => {
         const result = await getDetailProduct(params.id);
         setData(result.product);
+        const result2 = await getCategory({ status: "active" });
+        setCategory(result2.category);
     };
 
     useEffect(() => {
         fetchAPI();
     }, []);
+
+    const categoryOpitons = [
+        {
+            value: "",
+            label: "-- Danh mục --",
+        },
+        ...category.map(item => ({
+            value: item._id,
+            label: `-- ${item.title} --`
+        }))
+    ];
 
     if (Object.keys(data).length > 0) {
         if (data.status === "active") {
@@ -48,7 +67,8 @@ function EditProduct() {
                     status: data.status || false,
                     thumbnail: await processThumbnail(data.thumbnail),
                     position: data.position || 0,
-                    featured: data.featured || false
+                    featured: data.featured || false,
+                    categoryId: data.categoryId
                 })
             }
         }
@@ -101,148 +121,163 @@ function EditProduct() {
 
     return (
         <>
-            <div className="product__edit">
-                <Form
-                    className="product__form"
-                    form={form}
-                    layout="vertical"
-                    onFinish={handleSubmit}
-                    initialValues={{
-                        title: data.title || "",
-                        price: data.price || 0,
-                        stock: data.stock || 0,
-                        discountPercentage: data.discountPercentage || 0,
-                        status: data.status || false,
-                        thumbnail: data.thumbnail
-                            ? [{ uid: '-1', name: 'image.png', status: 'done', url: data.thumbnail }]
-                            : [],
-                        position: data.position || 0
+            {permissions.includes("products_edit") && (
+                <div className="product__edit">
+                    <Form
+                        className="product__form"
+                        form={form}
+                        layout="vertical"
+                        onFinish={handleSubmit}
+                        initialValues={{
+                            title: data.title || "",
+                            price: data.price || 0,
+                            stock: data.stock || 0,
+                            discountPercentage: data.discountPercentage || 0,
+                            status: data.status || false,
+                            thumbnail: data.thumbnail
+                                ? [{ uid: '-1', name: 'image.png', status: 'done', url: data.thumbnail }]
+                                : [],
+                            position: data.position || 0
 
-                    }}
-                >
-                    <div className="product__header">
-                        <h5 className="product__title">
-                            Cập nhật sản phẩm
-                        </h5>
+                        }}
+                    >
+                        <div className="product__header">
+                            <h5 className="product__title">
+                                Cập nhật sản phẩm
+                            </h5>
 
-                        <div className="product__buttons">
-                            <Form.Item className="product__form-item">
-                                <Button type='primary' htmlType="submit">Cập nhật</Button>
+                            <div className="product__buttons">
+                                <Form.Item className="product__form-item">
+                                    <Button type='primary' htmlType="submit">Cập nhật</Button>
+                                </Form.Item>
+                            </div>
+                        </div>
+
+
+                        <div className="product__input-data">
+                            <Form.Item
+                                label="Tiêu đề sản phẩm"
+                                name="title"
+                            >
+                                <Input />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Danh mục sản phẩm"
+                                name="categoryId"
+                            >
+                                <Select options={categoryOpitons} />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Sản phẩm nổi bật"
+                                name="featured"
+                                valuePropName="checked"
+                            >
+                                <Switch
+                                    checkedChildren="Nổi bật"
+                                    unCheckedChildren="Không"
+                                />
+                            </Form.Item>
+
+                            <div className="product__desc">
+                                <label className="product__label-desc">Mô tả sản phẩm</label>
+                                <Editor
+                                    apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
+                                    onInit={(_evt, editor) => editorRef.current = editor}
+                                    init={{
+                                        plugins: [
+                                            // Core editing features
+                                            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount', 'code',
+                                            // Your account includes a free trial of TinyMCE premium features
+                                            // Try the most popular premium features until Mar 29, 2025:
+                                            'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
+                                        ],
+                                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+                                        tinycomments_mode: 'embedded',
+                                        tinycomments_author: 'Author name',
+                                        mergetags_list: [
+                                            { value: 'First.Name', title: 'First Name' },
+                                            { value: 'Email', title: 'Email' },
+                                        ],
+                                        ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
+                                        file_picker_callback: handlePickerCallback,
+                                    }}
+                                    initialValue={data.description || ""}
+                                />
+                            </div>
+
+                            <Row>
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Giá"
+                                        name="price"
+                                    >
+                                        <InputNumber min={0} step={0.01} />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Giảm giá"
+                                        name="discountPercentage"
+                                    >
+                                        <InputNumber min={0} max={100} step={0.01} />
+                                    </Form.Item>
+                                </Col>
+                                <Col span={8}>
+                                    <Form.Item
+                                        label="Số lượng"
+                                        name="stock"
+                                    >
+                                        <InputNumber min={0} />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+
+                            <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
+                                <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
+                                    <button
+                                        style={{
+                                            color: 'inherit',
+                                            cursor: 'inherit',
+                                            border: 0,
+                                            background: 'none',
+                                        }}
+                                        type="button"
+                                    >
+                                        <PlusOutlined />
+                                        <div
+                                            style={{
+                                                marginTop: 8,
+                                            }}
+                                        >
+                                            Upload
+                                        </div>
+                                    </button>
+                                </Upload>
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Vị trí"
+                                name="position"
+                            >
+                                <InputNumber name="position" min={1} placeholder="Tự động tăng" className="product__position" />
+                            </Form.Item>
+
+                            <Form.Item
+                                label="Trạng thái"
+                                name="status"
+                                valuePropName="checked"
+                            >
+                                <Switch
+                                    checkedChildren="Hoạt động"
+                                    unCheckedChildren="Dừng hoạt động"
+                                />
                             </Form.Item>
                         </div>
-                    </div>
-
-
-                    <div className="product__input-data">
-                        <Form.Item
-                            label="Tiêu đề sản phẩm"
-                            name="title"
-                        >
-                            <Input />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Sản phẩm nổi bật"
-                            name="featured"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Nổi bật"
-                                unCheckedChildren="Không"
-                            />
-                        </Form.Item>
-
-                        <div className="product__desc">
-                            <label className="product__label-desc">Mô tả sản phẩm</label>
-                            <Editor
-                                apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
-                                onInit={(_evt, editor) => editorRef.current = editor}
-                                init={{
-                                    plugins: [
-                                        // Core editing features
-                                        'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount', 'code',
-                                        // Your account includes a free trial of TinyMCE premium features
-                                        // Try the most popular premium features until Mar 29, 2025:
-                                        'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
-                                    ],
-                                    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                                    tinycomments_mode: 'embedded',
-                                    tinycomments_author: 'Author name',
-                                    mergetags_list: [
-                                        { value: 'First.Name', title: 'First Name' },
-                                        { value: 'Email', title: 'Email' },
-                                    ],
-                                    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
-                                    file_picker_callback: handlePickerCallback,
-                                }}
-                                initialValue={data.description || ""}
-                            />
-                        </div>
-
-                        <Form.Item
-                            label="Giá"
-                            name="price"
-                        >
-                            <InputNumber min={0} step={0.01} />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Giảm giá"
-                            name="discountPercentage"
-                        >
-                            <InputNumber min={0} max={100} step={0.01} />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Số lượng"
-                            name="stock"
-                        >
-                            <InputNumber min={0} />
-                        </Form.Item>
-
-                        <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                            <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*"  beforeUpload={(file) => checkImage(file, Upload)}>
-                                <button
-                                    style={{
-                                        color: 'inherit',
-                                        cursor: 'inherit',
-                                        border: 0,
-                                        background: 'none',
-                                    }}
-                                    type="button"
-                                >
-                                    <PlusOutlined />
-                                    <div
-                                        style={{
-                                            marginTop: 8,
-                                        }}
-                                    >
-                                        Upload
-                                    </div>
-                                </button>
-                            </Upload>
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Vị trí"
-                            name="position"
-                        >
-                            <InputNumber name="position" min={1} placeholder="Tự động tăng" className="product__position" />
-                        </Form.Item>
-
-                        <Form.Item
-                            label="Trạng thái"
-                            name="status"
-                            valuePropName="checked"
-                        >
-                            <Switch
-                                checkedChildren="Hoạt động"
-                                unCheckedChildren="Dừng hoạt động"
-                            />
-                        </Form.Item>
-                    </div>
-                </Form>
-            </div>
+                    </Form>
+                </div>
+            )}
         </>
     );
 };

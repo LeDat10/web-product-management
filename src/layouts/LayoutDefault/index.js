@@ -14,14 +14,14 @@ function LayoutDefault() {
         <>
             <Layout>
                 <Sider theme='light' collapsed={collapsed} className='sider'>
-                    <Link to={"/"} className='sider__logo'>
+                    <Link to={"/admin/dashboard"} className='sider__logo'>
                         <img src={Logo} alt='Adminator' />
                         <h5 className='sider__label' collapsed={`${collapsed}`} >Adminator</h5>
                     </Link>
                     <MenuSider />
                 </Sider>
 
-                <Layout>
+                <Layout className='layout-full'>
                     <Header style={{
                         padding: 0,
                         background: "#ddd",

@@ -1,0 +1,45 @@
+.accounts {
+    &__header {
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 55px;
+        border-top: 1px solid #ddd;
+    }
+
+    &__title {
+        margin: 0px;
+        font-size: 17px;
+        padding: 10px 20px;
+    }
+
+    &__buttons {
+        padding: 0px 20px;
+        flex: 1;
+        display: flex;
+        justify-content: end;
+    }
+
+    &__list {
+        padding: 20px;
+    }
+
+    // create
+    &__form-item {
+        margin: 0;
+    }
+
+    &__input-data {
+        background-color: #fff;
+        margin: 20px;
+        padding: 20px;
+    }
+    // end create
+}
+
+.table {
+    &__image {
+        width: 80px;
+    }
+}

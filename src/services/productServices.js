@@ -4,7 +4,8 @@ const objParams = {
     keyword: "",
     status: "",
     sortKey: "",
-    sortValue: ""
+    sortValue: "",
+    categoryId: ""
 };
 export const getProducts = async (params) => {
     if (params.keyword) {
@@ -26,7 +27,13 @@ export const getProducts = async (params) => {
         objParams.sortKey = "";
         objParams.sortValue = "";
     };
-    const result = await get(`products?keyword=${objParams.keyword}&status=${objParams.status}&sortKey=${objParams.sortKey}&sortValue=${objParams.sortValue}`);
+
+    if(params.categoryId) {
+        objParams.categoryId = params.categoryId;
+    } else {
+        objParams.categoryId = "";
+    };
+    const result = await get(`products?keyword=${objParams.keyword}&status=${objParams.status}&sortKey=${objParams.sortKey}&sortValue=${objParams.sortValue}&categoryId=${objParams.categoryId}`);
     return result;
 };
 
