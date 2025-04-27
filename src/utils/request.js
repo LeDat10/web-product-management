@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const API_DOMAIN = "http://localhost:5000/api/admin/";
+const API_DOMAIN = "https://api-project-product-management.vercel.app/";
 
 const axiosInstance = axios.create();
 
