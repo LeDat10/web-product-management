@@ -162,7 +162,7 @@ function CreateAccount() {
                             </Form.Item>
 
                             <Form.Item label="Ảnh" name="avatar" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                                <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="avatar" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
+                                <Upload listType="picture-card" maxCount={1} name="avatar" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
                                     <button
                                         style={{
                                             color: 'inherit',

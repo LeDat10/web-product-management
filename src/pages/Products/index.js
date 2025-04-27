@@ -15,6 +15,7 @@ import { getCategory } from '../../services/categoryServices';
 import Delete from '../../Components/Delete';
 import { deleteProduct } from '../../services/productServices';
 import useAuth from '../../helper/useAuth';
+import moment from 'moment';
 
 function Products() {
     const [data, setData] = useState([]);
@@ -96,6 +97,20 @@ function Products() {
                         ) : (
                             <Tag color='error'>Dừng hoạt động</Tag>
                         )
+                    )}
+                </>
+            )
+        },
+        {
+            title: "Người cập nhật",
+            dataIndex: "updatedBy",
+            render: (value, record) => (
+                <>
+                    {value && (
+                        <div className='time'>
+                            <p>{value.accountFullName}</p>
+                            <p>{moment(value.updatedAt).format('DD/MM/YYYY HH:mm:ss')}</p>
+                        </div>
                     )}
                 </>
             )

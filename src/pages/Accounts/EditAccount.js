@@ -13,7 +13,8 @@ function EditAccount() {
     const [data, setData] = useState({});
     const params = useParams();
     const [roles, setRoles] = useState([]);
-
+    const [originalThumbnail, setOriginalThumbnail] = useState(null);
+    const [reload, setReload] = useState(false);
     const permissions = useAuth();
 
     const fetchAPIRole = async () => {
@@ -21,15 +22,20 @@ function EditAccount() {
         setRoles(result.roles);
     };
 
+    const handleReload = () => {
+        setReload(!reload);
+    }
+
     const fetchAPIAccount = async () => {
         const result = await getDetailAccount(params.id);
         setData(result.account);
+        setOriginalThumbnail(result.account.avatar);
     };
 
     useEffect(() => {
         fetchAPIRole();
         fetchAPIAccount();
-    }, []);
+    }, [reload]);
 
     const rolesOption = [
         {
@@ -73,10 +79,17 @@ function EditAccount() {
 
         for (const key in data) {
             if (key === "avatar") {
-                if (data[key].length > 0) {
-                    formData.append("avatar", data.avatar[0].originFileObj);
-                } else {
+                const newFile = data[key]?.[0];
+                if (!newFile) {
                     formData.append("avatar", "");
+                } else {
+                    if (newFile.url === originalThumbnail) {
+                        continue;
+                    }
+
+                    if (newFile.originFileObj) {
+                        formData.append("avatar", newFile.originFileObj);
+                    }
                 }
             } else if (key === "status") {
                 if (data[key]) {
@@ -98,6 +111,7 @@ function EditAccount() {
         const result = await editAccount(params.id, formData);
         if (result.code === 200) {
             message.success("Cập nhật tài khoản thành công!");
+            handleReload();
         } else {
             message.error("Cập nhật tài khoản thất bại!");
         }
@@ -197,7 +211,7 @@ function EditAccount() {
                             </Form.Item>
 
                             <Form.Item label="Ảnh" name="avatar" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                                <Upload action={`http://localhost:3001/api/accounts/edit/${params.id}`} listType="picture-card" maxCount={1} name="avatar" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
+                                <Upload listType="picture-card" maxCount={1} name="avatar" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
                                     <button
                                         style={{
                                             color: 'inherit',

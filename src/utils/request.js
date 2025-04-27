@@ -1,12 +1,19 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const API_DOMAIN = "http://localhost:5000/api/";
+const API_DOMAIN = "http://localhost:5000/api/admin/";
 
-const axiosInstance = axios.create({
-    headers: {
-        "Content-Type": "application/json",
-    },
+const axiosInstance = axios.create();
+
+axiosInstance.interceptors.request.use((config) => {
+    if (config.data instanceof FormData) {
+        config.headers["Content-Type"] = "multipart/form-data";
+    } else {
+        config.headers["Content-Type"] = "application/json";
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
 const EXCLUDED_URLS = [

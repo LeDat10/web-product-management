@@ -7,7 +7,6 @@ import { checkImage } from "../../helper/checkImage";
 import { getDetailCategory, editCategory } from "../../services/categoryServices";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
 import { processThumbnail } from "../../helper/processThumbnail";
-import { permissions } from "../../services/rolesServices";
 import useAuth from "../../helper/useAuth";
 
 function EditCategory() {
@@ -15,17 +14,24 @@ function EditCategory() {
     const editorRef = useRef(null);
     const [data, setData] = useState({});
     const params = useParams();
+    const [reload, setReload] = useState(false);
+    const [originalThumbnail, setOriginalThumbnail] = useState(null);
 
     const permissions = useAuth();
 
     const fetchAPI = async () => {
         const result = await getDetailCategory(params.id);
         setData(result.category);
+        setOriginalThumbnail(result.category.thumbnail);
     };
+
+    const handleReload = () => {
+        setReload(!reload);
+    }
 
     useEffect(() => {
         fetchAPI();
-    }, []);
+    }, [reload]);
 
     if (Object.keys(data).length > 0) {
         if (data.status === "active") {
@@ -55,10 +61,20 @@ function EditCategory() {
 
         for (const key in data) {
             if (key === "thumbnail") {
-                if (data[key].length > 0) {
-                    formData.append("thumbnail", data.thumbnail[0].originFileObj);
-                } else {
+                const newFile = data[key]?.[0];
+                if (!newFile) {
+                    // Người dùng đã xóa ảnh (fileList rỗng) → gửi thumbnail = ""
                     formData.append("thumbnail", "");
+                } else {
+                    if (newFile.url === originalThumbnail) {
+                        // Không thay đổi ảnh → không append gì
+                        continue;
+                    }
+
+                    if (newFile.originFileObj) {
+                        // Người dùng chọn ảnh mới → gửi file
+                        formData.append("thumbnail", newFile.originFileObj);
+                    }
                 }
             } else if (key === "status") {
                 if (data[key]) {
@@ -80,6 +96,7 @@ function EditCategory() {
         const result = await editCategory(params.id, formData);
         if (result.code === 200) {
             message.success("Cập nhật danh mục thành công!");
+            handleReload();
         } else {
             message.error("Cập nhật danh mục thất bại!");
         }
@@ -142,20 +159,14 @@ function EditCategory() {
                                     apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
                                     onInit={(_evt, editor) => editorRef.current = editor}
                                     init={{
-                                        plugins: [
-                                            // Core editing features
-                                            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount', 'code',
-                                            // Your account includes a free trial of TinyMCE premium features
-                                            // Try the most popular premium features until Mar 29, 2025:
-                                            'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
-                                        ],
-                                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                                        tinycomments_mode: 'embedded',
-                                        tinycomments_author: 'Author name',
-                                        mergetags_list: [
-                                            { value: 'First.Name', title: 'First Name' },
-                                            { value: 'Email', title: 'Email' },
-                                        ],
+                                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+                                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                                        // tinycomments_mode: 'embedded',
+                                        // tinycomments_author: 'Author name',
+                                        // mergetags_list: [
+                                        //     { value: 'First.Name', title: 'First Name' },
+                                        //     { value: 'Email', title: 'Email' },
+                                        // ],
                                         ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
                                         file_picker_callback: handlePickerCallback,
                                     }}
@@ -163,7 +174,7 @@ function EditCategory() {
                                 />
                             </div>
                             <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                                <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
+                                <Upload listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
                                     <button
                                         style={{
                                             color: 'inherit',

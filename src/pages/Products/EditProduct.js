@@ -1,5 +1,5 @@
 import { Button, Col, Form, Input, InputNumber, message, Row, Select, Switch, Upload } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { FlagFilled, PlusOutlined } from "@ant-design/icons";
 import { editProduct, getDetailProduct } from "../../services/productServices";
 import { useEffect, useRef, useState } from "react";
 import { Editor } from '@tinymce/tinymce-react';
@@ -8,7 +8,6 @@ import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
 import { processThumbnail } from "../../helper/processThumbnail";
 import { getCategory } from "../../services/categoryServices";
-import { permissions } from "../../services/rolesServices";
 import useAuth from "../../helper/useAuth";
 
 function EditProduct() {
@@ -17,19 +16,26 @@ function EditProduct() {
     const [data, setData] = useState({});
     const params = useParams();
     const [category, setCategory] = useState([]);
+    const [originalThumbnail, setOriginalThumbnail] = useState(null);
+    const [reload, setReload] = useState(false);
 
     const permissions = useAuth();
 
     const fetchAPI = async () => {
         const result = await getDetailProduct(params.id);
         setData(result.product);
+        setOriginalThumbnail(result.product.thumbnail);
         const result2 = await getCategory({ status: "active" });
         setCategory(result2.category);
     };
 
+    const handleReload = () => {
+        setReload(!reload);
+    }
+
     useEffect(() => {
         fetchAPI();
-    }, []);
+    }, [reload]);
 
     const categoryOpitons = [
         {
@@ -68,7 +74,7 @@ function EditProduct() {
                     thumbnail: await processThumbnail(data.thumbnail),
                     position: data.position || 0,
                     featured: data.featured || false,
-                    categoryId: data.categoryId
+                    categoryId: data.categoryId || ""
                 })
             }
         }
@@ -83,10 +89,20 @@ function EditProduct() {
 
         for (const key in data) {
             if (key === "thumbnail") {
-                if (data[key].length > 0) {
-                    formData.append("thumbnail", data.thumbnail[0].originFileObj);
-                } else {
+                const newFile = data[key]?.[0];
+                if (!newFile) {
+                    // Người dùng đã xóa ảnh (fileList rỗng) → gửi thumbnail = ""
                     formData.append("thumbnail", "");
+                } else {
+                    if (newFile.url === originalThumbnail) {
+                        // Không thay đổi ảnh → không append gì
+                        continue;
+                    }
+
+                    if (newFile.originFileObj) {
+                        // Người dùng chọn ảnh mới → gửi file
+                        formData.append("thumbnail", newFile.originFileObj);
+                    }
                 }
             } else if (key === "status") {
                 if (data[key]) {
@@ -114,6 +130,7 @@ function EditProduct() {
         const result = await editProduct(params.id, formData);
         if (result.code === 200) {
             message.success("Cập nhật sản phẩm thành công!");
+            handleReload();
         } else {
             message.error("Cập nhật sản phẩm thất bại!");
         }
@@ -137,8 +154,8 @@ function EditProduct() {
                             thumbnail: data.thumbnail
                                 ? [{ uid: '-1', name: 'image.png', status: 'done', url: data.thumbnail }]
                                 : [],
-                            position: data.position || 0
-
+                            position: data.position || 0,
+                            categoryId: ""
                         }}
                     >
                         <div className="product__header">
@@ -152,7 +169,6 @@ function EditProduct() {
                                 </Form.Item>
                             </div>
                         </div>
-
 
                         <div className="product__input-data">
                             <Form.Item
@@ -186,20 +202,14 @@ function EditProduct() {
                                     apiKey='vcbgfqutgjbvv0cl9kdsjylyti5d6xq99x8gkrigm9jg62u4'
                                     onInit={(_evt, editor) => editorRef.current = editor}
                                     init={{
-                                        plugins: [
-                                            // Core editing features
-                                            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount', 'code',
-                                            // Your account includes a free trial of TinyMCE premium features
-                                            // Try the most popular premium features until Mar 29, 2025:
-                                            'checklist', 'mediaembed', 'casechange', 'export', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
-                                        ],
-                                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                                        tinycomments_mode: 'embedded',
-                                        tinycomments_author: 'Author name',
-                                        mergetags_list: [
-                                            { value: 'First.Name', title: 'First Name' },
-                                            { value: 'Email', title: 'Email' },
-                                        ],
+                                        plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+                                        toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+                                        // tinycomments_mode: 'embedded',
+                                        // tinycomments_author: 'Author name',
+                                        // mergetags_list: [
+                                        //     { value: 'First.Name', title: 'First Name' },
+                                        //     { value: 'Email', title: 'Email' },
+                                        // ],
                                         ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
                                         file_picker_callback: handlePickerCallback,
                                     }}
@@ -235,7 +245,7 @@ function EditProduct() {
                             </Row>
 
                             <Form.Item label="Ảnh" name="thumbnail" valuePropName="fileList" getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList || []}>
-                                <Upload action="http://localhost:3001/api/products/create" listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
+                                <Upload listType="picture-card" maxCount={1} name="thumbnail" accept="image/*" beforeUpload={(file) => checkImage(file, Upload)}>
                                     <button
                                         style={{
                                             color: 'inherit',
