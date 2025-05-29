@@ -143,6 +143,12 @@ function EditCategory() {
                             <Form.Item
                                 label="Tiêu đề sản phẩm"
                                 name="title"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Tiêu đề không được bỏ trống!"
+                                    }
+                                ]}
                             >
                                 <Input />
                             </Form.Item>

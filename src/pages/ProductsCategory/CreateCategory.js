@@ -89,6 +89,12 @@ function CreateCategory() {
                             <Form.Item
                                 label="Tiêu đề danh mục"
                                 name="title"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Tiêu đề không được bỏ trống!"
+                                    }
+                                ]}
                             >
                                 <Input />
                             </Form.Item>

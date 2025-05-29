@@ -60,6 +60,12 @@ function CreateRole() {
                             <Form.Item
                                 label="Tiêu đề nhóm quyền"
                                 name="title"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Tiêu đề không được bỏ trống!"
+                                    }
+                                ]}
                             >
                                 <Input />
                             </Form.Item>
