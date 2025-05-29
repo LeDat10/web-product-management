@@ -10,6 +10,7 @@ import { useQueryParams } from "../../hooks/useQueryParams";
 import Sort from "../../Components/Sort";
 import { useSelector } from "react-redux";
 import moment from "moment";
+import FilterStatus from "../../Components/FilterStatus";
 
 function Accounts() {
     const [data, setData] = useState([]);
@@ -38,11 +39,13 @@ function Accounts() {
         const sortKey = queryParams.get('sortKey') || '';
         const sortValue = queryParams.get('sortValue') || '';
         const page = queryParams.get('page') || 1;
+        const status = queryParams.get('status') || '';
         fetchAPI({
             sortKey,
             sortValue,
             limit,
-            page
+            page,
+            status
         });
     }, [reload, location.search]);
 
@@ -133,6 +136,44 @@ function Accounts() {
         }
     ];
 
+    const filterStatusOptions = [
+        {
+            value: "",
+            label: "-- Trạng thái --",
+            disabled: true
+        },
+        {
+            value: "all",
+            label: "-- Tất cả --"
+        },
+        {
+            value: "active",
+            label: "-- Hoạt động --",
+        },
+        {
+            value: "inactive",
+            label: "-- Dừng hoạt động --",
+        }
+    ];
+
+    const handleFilterStatus = (status) => {
+        if (status === "all") {
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', "");
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
+            });
+        } else {
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', status);
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
+            });
+        };
+    };
+
     const handleSort = (value) => {
         const [sortKey, sortValue] = value.split("-");
         const queryParams = new URLSearchParams(location.search);
@@ -177,6 +218,9 @@ function Accounts() {
                         <Row className='row-height' gutter={20} align={'middle'}>
                             <Col span={6}>
                                 <Sort sortOptions={sortOptions} handleSort={handleSort} defaultValue={`${queryParams.get('sortKey') || "fullName"}-${queryParams.get('sortValue') || "asc"}`} />
+                            </Col>
+                            <Col span={6}>
+                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleFilterStatus} defaultValue={queryParams.get('status') || ''} />
                             </Col>
                         </Row>
                     </div>

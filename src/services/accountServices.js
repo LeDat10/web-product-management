@@ -2,7 +2,7 @@ import { del, get, patch, post } from "../utils/request"
 
 
 export const getAccount = async (params) => {
-    const result = await get(`accounts?sortKey=${params.sortKey}&sortValue=${params.sortValue}&limit=${params.limit}&page=${params.page}`);
+    const result = await get(`accounts?sortKey=${params.sortKey}&sortValue=${params.sortValue}&limit=${params.limit}&page=${params.page}&status=${params.status}`);
     return result;
 }
 

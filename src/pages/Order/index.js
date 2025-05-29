@@ -8,6 +8,7 @@ import ChangeMulti from "../../Components/ChangeMulti";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import InputSearch from "../../Components/InputSearch";
 import { useQueryParams } from "../../hooks/useQueryParams";
+import FilterStatus from "../../Components/FilterStatus";
 
 function Order() {
     const [orders, setOrders] = useState([]);
@@ -31,10 +32,12 @@ function Order() {
     useEffect(() => {
         const keyword = queryParams.get('keyword') || '';
         const page = queryParams.get('page') || 1;
+        const status = queryParams.get('status') || '';
         fetchAPI({
             keyword: keyword,
             page: page,
-            limit: limit
+            limit: limit,
+            status: status
         });
     }, [reload, location.search]);
 
@@ -121,6 +124,38 @@ function Order() {
         }
     ];
 
+    const filterStatusOptions = [
+        {
+            value: "",
+            label: "-- Trạng thái --",
+            disabled: true
+        },
+        {
+            value: 'pending',
+            label: "-- Chờ xử lý --"
+        },
+        {
+            value: 'confirmed',
+            label: "-- Đã xác nhận --"
+        },
+        {
+            value: 'shipping',
+            label: "-- Đang giao --"
+        },
+        {
+            value: "delivered",
+            label: "-- Đã giao --"
+        },
+        {
+            value: "cancelled",
+            label: "-- Đã hủy --"
+        },
+        {
+            value: "refunded",
+            label: "-- Hoàn tiền --"
+        }
+    ];
+
     const changeMultiOption = [
         {
             value: '',
@@ -190,6 +225,24 @@ function Order() {
         });
     };
 
+    const handleFilterStatus = (status) => {
+        if (status === "all") {
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', "");
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
+            });
+        } else {
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', status);
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
+            });
+        };
+    };
+
     return (
         <>
             {permissions.includes("order_view") && (
@@ -217,6 +270,9 @@ function Order() {
                         <Row className='row-height' gutter={20} align={'middle'}>
                             <Col span={6}>
                                 <InputSearch placeholder="Tìm kiếm theo mã đơn hàng..." onSearch={handleSearch} defaultValue={queryParams.get('keyword') || ''} />
+                            </Col>
+                            <Col span={6}>
+                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleFilterStatus} defaultValue={queryParams.get('status') || ''} />
                             </Col>
                         </Row>
                     </div>

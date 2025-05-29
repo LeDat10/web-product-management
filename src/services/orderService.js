@@ -1,7 +1,7 @@
 import { del, get, patch } from "../utils/request";
 
 export const getOrders = async(params) => {
-    const result = await get(`order?orderId=${params.keyword}&limit=${params.limit}&page=${params.page}`);
+    const result = await get(`order?orderId=${params.keyword}&limit=${params.limit}&page=${params.page}&status=${params.status}`);
     return result;
 };
 
