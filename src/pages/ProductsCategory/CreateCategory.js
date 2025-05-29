@@ -1,20 +1,23 @@
 import { Button, Form, Input, InputNumber, message, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { createCategory } from "../../services/categoryServices";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Editor } from '@tinymce/tinymce-react';
 import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 
 function CreateCategory() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
-    const permissions = useAuth();
+
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         const formData = new FormData();
 
         for (const key in data) {
@@ -53,6 +56,7 @@ function CreateCategory() {
         } else {
             message.error("Tạo danh mục mới thất bại!");
         }
+        setLoading(false);
     }
 
     return (
@@ -68,14 +72,14 @@ function CreateCategory() {
                             status: true
                         }}
                     >
-                        <div className="category__header">
-                            <h5 className="category__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Tạo mới danh mục
                             </h5>
 
                             <div className="category__buttons">
                                 <Form.Item className="category__form-item">
-                                    <Button type='primary' htmlType="submit">Tạo danh mục</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Tạo danh mục</Button>
                                 </Form.Item>
                             </div>
                         </div>

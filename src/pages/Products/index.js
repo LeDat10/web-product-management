@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Products.scss';
-import { Button, Table, InputNumber, Row, Col, Select, Tag } from 'antd';
+import { Button, Table, InputNumber, Row, Col, Select, Tag, Pagination } from 'antd';
 import { EditOutlined } from "@ant-design/icons";
 import { useEffect, useState } from 'react';
-import { getProducts } from '../../services/productServices';
+import { getCategoryProduct, getProducts } from '../../services/productServices';
 import InputSearch from '../../Components/InputSearch';
 import ChangeMulti from "../../Components/ChangeMulti";
 import FilterStatus from '../../Components/FilterStatus';
@@ -11,27 +11,35 @@ import Sort from '../../Components/Sort';
 import ChangeStatus from '../../Components/ChangeStatus';
 import { changeStatusProduct } from '../../services/productServices';
 import { changeMultiProduct } from '../../services/productServices';
-import { getCategory } from '../../services/categoryServices';
 import Delete from '../../Components/Delete';
 import { deleteProduct } from '../../services/productServices';
-import useAuth from '../../helper/useAuth';
 import moment from 'moment';
+import { useQueryParams } from '../../hooks/useQueryParams';
+import { useSelector } from 'react-redux';
 
 function Products() {
     const [data, setData] = useState([]);
     const [reload, setReload] = useState(false);
     const [positions, setPositions] = useState({});
     const [category, setCategory] = useState([]);
+    const [totalProduct, setTotalProduct] = useState(0);
+    const queryParams = useQueryParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const limit = 10;
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPI = async (params = {}) => {
         const result = await getProducts(params);
-        setData(result.products);
+        if (result.code === 200) {
+            setData(result.products);
+            setTotalProduct(result.totalProduct);
+        }
     };
 
     const fetchCategoryAPI = async () => {
-        const result = await getCategory({ status: "active" });
+        const result = await getCategoryProduct();
         setCategory(result.category);
     };
 
@@ -40,8 +48,23 @@ function Products() {
     };
 
     useEffect(() => {
-        fetchAPI();
-    }, [reload]);
+        const sortKey = queryParams.get('sortKey') || 'position';
+        const sortValue = queryParams.get('sortValue') || 'desc';
+        const keyword = queryParams.get('keyword') || '';
+        const status = queryParams.get('status') || '';
+        const category = queryParams.get('category') || '';
+        const page = queryParams.get('page') || 1;
+
+        fetchAPI({
+            sortKey: sortKey,
+            sortValue: sortValue,
+            keyword: keyword,
+            status: status,
+            category: category,
+            page: page,
+            limit: limit
+        });
+    }, [reload, location.search]);
 
     useEffect(() => {
         fetchCategoryAPI();
@@ -206,43 +229,42 @@ function Products() {
         }
     ];
 
-    // const [searchParams, setSearchParams] = useSearchParams();
-
-    const handleSearch = (keyword) => {
-        // const newParams = new URLSearchParams(searchParams);
-        // if (!keyword) {
-        //     newParams.delete("keyword");
-        //     setSearchParams(newParams);
-        //     handleReload();
-        // } else {
-        //     newParams.set("keyword", keyword);
-        //     setSearchParams(newParams);
-        //     const urlParams = new URLSearchParams(window.location.search);
-        //     const currentParams = Object.fromEntries(urlParams.entries());
-        //     fetchAPI(currentParams);
-        // };
-
-        if (keyword) {
-            fetchAPI({
-                keyword: keyword
+    const handleFilterStatus = (status) => {
+        if (status === "all") {
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', "");
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
             });
         } else {
-            fetchAPI({
-                keyword: ""
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', status);
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
             });
         };
     };
 
-    const handleChangeStatus = (status) => {
-        if (status === "all") {
-            fetchAPI({
-                status: ""
-            });
-        } else {
-            fetchAPI({
-                status: status
-            });
-        };
+    const handleSearch = (keyword) => {
+        const queryParams = new URLSearchParams(location.search);
+        queryParams.set('keyword', keyword);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
+        });
+    };
+
+    const handleSort = (value) => {
+        const [sortKey, sortValue] = value.split("-");
+        const queryParams = new URLSearchParams(location.search);
+        queryParams.set('sortKey', sortKey);
+        queryParams.set('sortValue', sortValue);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
+        });
     };
 
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -273,26 +295,32 @@ function Products() {
         setSelectedRowKeys([]);
     };
 
-    const handleSort = (value) => {
-        const [sortKey, sortValue] = value.split("-");
-        fetchAPI({
-            sortKey: sortKey,
-            sortValue: sortValue
+    const handleChangeCategory = (value) => {
+        const queryParams = new URLSearchParams(location.search);
+        queryParams.set('category', value);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
         });
     };
 
-    const handleChangeCategory = (value) => {
-        fetchAPI({
-            categoryId: value
+    const handleChangePagination = (page) => {
+        const queryParams = new URLSearchParams(location.search);
+
+        queryParams.set('page', page);
+        queryParams.set('limit', limit);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
         });
-    }
+    };
 
     return (
         <>
             {permissions.includes('products_view') && (
                 <div className="product">
-                    <div className="product__header">
-                        <h5 className="product__title">
+                    <div className="header-page">
+                        <h5 className="title-page">
                             Danh sách sản phẩm
                         </h5>
 
@@ -311,6 +339,7 @@ function Products() {
                                     getSelectedProducts={getSelectedProducts}
                                     rowKeysEmpty={setRowKeysEmpty}
                                     changeMulti={changeMultiProduct}
+                                    textConfirm="Bạn có muốn xóa những sản phẩm này?"
                                 />
                             )}
                         </div>
@@ -319,23 +348,29 @@ function Products() {
                     <div className='product__navigation'>
                         <Row className='row-height' gutter={20} align={'middle'}>
                             <Col span={6}>
-                                <InputSearch onSearch={handleSearch} />
+                                <InputSearch onSearch={handleSearch} defaultValue={queryParams.get('keyword') || ''} />
                             </Col>
                             <Col span={6}>
-                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleChangeStatus} />
+                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleFilterStatus} defaultValue={queryParams.get('status') || ''} />
                             </Col>
                             <Col span={6}>
-                                <Sort sortOptions={sortOptions} handleSort={handleSort} />
+                                <Sort sortOptions={sortOptions} handleSort={handleSort} defaultValue={`${queryParams.get('sortKey') || "position"}-${queryParams.get('sortValue') || "desc"}`} />
                             </Col>
                             <Col span={6}>
-                                <Select className='product__filter-category' options={categoryOpitons} defaultValue={""} onChange={handleChangeCategory} />
+                                <Select className='product__filter-category' options={categoryOpitons} defaultValue={`${queryParams.get("category") || ""}`} onChange={handleChangeCategory} />
                             </Col>
                         </Row>
                     </div>
 
                     <div className='product__list'>
-                        <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" />
+                        <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" pagination={false} />
                     </div>
+
+                    <Row gutter={[20, 20]}>
+                        <Col span={24}>
+                            <Pagination onChange={handleChangePagination} className="pagination" align="center" defaultCurrent={queryParams.get('page')} total={totalProduct} pageSize={limit} />
+                        </Col>
+                    </Row>
                 </div>
             )}
         </>

@@ -1,32 +1,7 @@
 import { get, post, patch, del } from "../utils/request"
 
-const objParams = {
-    keyword: "",
-    status: "",
-    sortKey: "",
-    sortValue: ""
-};
-export const getCategory = async(params) => {
-    if (params.keyword) {
-        objParams.keyword = params.keyword;
-    } else if (params.keyword === "") {
-        objParams.keyword = ""
-    }
-    
-    if (params.status) {
-        objParams.status = params.status;
-    } else if (params.status === "") {
-        objParams.status = "";
-    }
-
-    if(params.sortKey && params.sortValue) {
-        objParams.sortKey = params.sortKey;
-        objParams.sortValue = params.sortValue;
-    } else {
-        objParams.sortKey = "";
-        objParams.sortValue = "";
-    };
-    const result = await get(`products-category?keyword=${objParams.keyword}&status=${objParams.status}&sortKey=${objParams.sortKey}&sortValue=${objParams.sortValue}`);
+export const getCategory = async (params) => {
+    const result = await get(`products-category?keyword=${params.keyword}&status=${params.status}&sortKey=${params.sortKey}&sortValue=${params.sortValue}&limit=${params.limit}&page=${params.page}`);
     return result;
 }
 
@@ -58,4 +33,24 @@ export const editCategory = async (id, option) => {
 export const deleteCategory = async (id) => {
     const result = await del(`products-category/delete/${id}`);
     return result;
-}
+};
+
+export const getTrashCategory = async (params) => {
+    const result = await get(`products-category/trash?keyword=${params.keyword}&sortKey=${params.sortKey}&sortValue=${params.sortValue}&limit=${params.limit}&page=${params.page}`);
+    return result;
+};
+
+export const restoreTrashCategory = async (option) => {
+    const result = await patch(`products-category/trash/restore`, option);
+    return result;
+};
+
+export const deleteTrashCategory = async (categoryId) => {
+    const result = await del(`products-category/trash/delete/${categoryId}`);
+    return result;
+};
+
+export const restoreMultiCategory = async (option) => {
+    const result = await patch('products-category/trash/restore-multi', option);
+    return result;
+};

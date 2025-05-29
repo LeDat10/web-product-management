@@ -2,17 +2,20 @@ import { Button, Form, Input, message } from "antd";
 import { Editor } from '@tinymce/tinymce-react';
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
 import './Roles.scss';
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { createRoles } from "../../services/rolesServices";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function CreateRole() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
+    const [loading, setLoading] = useState(false);
 
-    const permissions = useAuth();
+
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         if (editorRef.current.getContent()) {
             data["description"] = editorRef.current.getContent();
         } else {
@@ -27,6 +30,7 @@ function CreateRole() {
         } else {
             message.success("Tạo nhóm quyền thất bại!");
         }
+        setLoading(false);
     }
 
     return (
@@ -39,14 +43,14 @@ function CreateRole() {
                         className="roles__form"
                         onFinish={handleSubmit}
                     >
-                        <div className="roles__header">
-                            <h5 className="roles__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Tạo mới nhóm quyền
                             </h5>
 
                             <div className="roles__buttons">
                                 <Form.Item className="roles__form-item">
-                                    <Button type='primary' htmlType="submit">Tạo nhóm quyền</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Tạo nhóm quyền</Button>
                                 </Form.Item>
                             </div>
                         </div>

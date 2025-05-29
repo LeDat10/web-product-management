@@ -1,24 +1,26 @@
 import { Button, Col, Form, Input, InputNumber, message, Row, Select, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { createProduct } from "../../services/productServices";
+import { createProduct, getCategoryProduct } from "../../services/productServices";
 import { useEffect, useRef, useState } from "react";
 import { Editor } from '@tinymce/tinymce-react';
 import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
-import { getCategory } from "../../services/categoryServices";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function CreateProduct() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
     const [category, setCategory] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const fetchAPI = async () => {
-        const result = await getCategory({ status: "active" });
-        setCategory(result.category);
+        const result = await getCategoryProduct();
+        if (result.code === 200) {
+            setCategory(result.category);
+        }
     };
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     useEffect(() => {
         fetchAPI();
@@ -36,6 +38,7 @@ function CreateProduct() {
     ];
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         const formData = new FormData();
 
         for (const key in data) {
@@ -82,6 +85,8 @@ function CreateProduct() {
         } else {
             message.error("Tạo sản phẩm mới thất bại!");
         }
+
+        setLoading(false);
     };
 
     return (
@@ -103,14 +108,14 @@ function CreateProduct() {
                             categoryId: ""
                         }}
                     >
-                        <div className="product__header">
-                            <h5 className="product__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Tạo mới sản phẩm
                             </h5>
 
                             <div className="product__buttons">
                                 <Form.Item className="product__form-item">
-                                    <Button type='primary' htmlType="submit">Tạo sản phẩm</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Tạo sản phẩm</Button>
                                 </Form.Item>
                             </div>
                         </div>

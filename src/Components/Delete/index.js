@@ -1,11 +1,14 @@
 import { Button, message, Popconfirm } from "antd";
-import {DeleteOutlined} from "@ant-design/icons";
+import { DeleteOutlined } from "@ant-design/icons";
 import "./Delelte.scss";
+import { useState } from "react";
 
 function Delete(props) {
     const { id, onReload, functionDelete, textConfirm } = props;
+    const [loading, setLoading] = useState(false);
 
     const handleDelete = async () => {
+        setLoading(true);
         const result = await functionDelete(id);
         if (result.code === 200) {
             onReload();
@@ -13,11 +16,12 @@ function Delete(props) {
         } else {
             message.error(result.message);
         };
+        setLoading(false);
     }
     return (
         <>
             <Popconfirm title={textConfirm} onConfirm={handleDelete} okText="Đồng ý" cancelText="Không">
-                <Button className="button-delete" danger icon={<DeleteOutlined />}>Xóa</Button>
+                <Button loading={loading} className="button-delete" danger icon={<DeleteOutlined />}>Xóa</Button>
             </Popconfirm>
         </>
     );

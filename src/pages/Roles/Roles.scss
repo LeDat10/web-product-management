@@ -1,3 +1,7 @@
+.margin-bottom {
+    margin-bottom: 10px;
+}
+
 .roles {
     &__header {
         background-color: #fff;
@@ -53,5 +57,35 @@
         display: inline-block;
         margin-right: 10px;
     }
+
     // end permissions
+
+    // navigation
+    &__navigation {
+        height: 55px;
+        margin: 0px 20px;
+        margin-top: 20px;
+        background-color: #fff;
+        padding: 0px 15px;
+    }
+
+    // end navigation
+
+    // Detail
+    &__box {
+        padding: 20px;
+        margin: 20px;
+        background-color: #fff;
+    }
+
+    &__label {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    &__content {
+        font-size: 1rem;
+    }
+
+    // End Detail
 }

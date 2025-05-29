@@ -1,5 +1,5 @@
 .margin-bottom {
-    margin-bottom: 7px;
+    margin-bottom: 10px;
 }
 
 .category {
@@ -65,55 +65,26 @@
         background-color: #fff;
         padding: 0px 15px;
     }
+
     // end navigation
 
-    &__inner-detail {
+    // Detail
+    &__box {
+        padding: 20px;
         margin: 20px;
         background-color: #fff;
-        padding: 20px;
-    }
-
-    &__inner-title {
-        font-weight: 600;
-        font-size: 25px;
-        margin-bottom: 20px;
-    }
-
-    &__info-category {
-        padding: 15px 20px;
-        background-color: #E9EAF1;
-    }
-
-    &__info-header {
-        font-weight: 500;
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-
-    &__status {
-        margin-bottom: 7px;
     }
 
     &__label {
+        font-size: 1rem;
         font-weight: 500;
-        font-size: 15px;
     }
 
     &__content {
-        font-weight: 700;
-        font-size: 15px;
-
-        &--active {
-            color: #49c938;
-        }
-
-        &--inactive {
-            color: rgba(238, 0, 0, 0.938);
-        }
+        font-size: 1rem;
     }
+
     // End Detail
-
-
 }
 
 .table {

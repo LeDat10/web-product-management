@@ -5,19 +5,22 @@ import './Roles.scss';
 import { useEffect, useRef, useState } from "react";
 import { editRole, getDetailRole } from "../../services/rolesServices";
 import { useParams } from "react-router-dom";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function EditRole() {
     const [form] = Form.useForm();
     const editorRef = useRef(null);
     const [data, setData] = useState({});
     const params = useParams();
+    const [loading, setLoading] = useState(false);
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPI = async () => {
         const result = await getDetailRole(params.id);
-        setData(result.role);
+        if (result.code === 200) {
+            setData(result.role);
+        }
     };
 
     useEffect(() => {
@@ -37,6 +40,7 @@ function EditRole() {
     }, [data]);
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         if (editorRef.current.getContent()) {
             data["description"] = editorRef.current.getContent();
         } else {
@@ -49,6 +53,7 @@ function EditRole() {
         } else {
             message.success("Cập nhật nhóm quyền thất bại!");
         }
+        setLoading(false);
     };
 
     return (
@@ -61,14 +66,14 @@ function EditRole() {
                         className="roles__form"
                         onFinish={handleSubmit}
                     >
-                        <div className="roles__header">
-                            <h5 className="roles__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Cập nhật nhóm quyền
                             </h5>
 
                             <div className="roles__buttons">
                                 <Form.Item className="roles__form-item">
-                                    <Button type='primary' htmlType="submit">Cập nhật</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Cập nhật</Button>
                                 </Form.Item>
                             </div>
                         </div>

@@ -1,14 +1,13 @@
 import { Button, Col, Form, Input, InputNumber, message, Row, Select, Switch, Upload } from "antd";
-import { FlagFilled, PlusOutlined } from "@ant-design/icons";
-import { editProduct, getDetailProduct } from "../../services/productServices";
+import { PlusOutlined } from "@ant-design/icons";
+import { editProduct, getCategoryProduct, getDetailProduct } from "../../services/productServices";
 import { useEffect, useRef, useState } from "react";
 import { Editor } from '@tinymce/tinymce-react';
 import { useParams } from "react-router-dom";
 import { checkImage } from "../../helper/checkImage";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
 import { processThumbnail } from "../../helper/processThumbnail";
-import { getCategory } from "../../services/categoryServices";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function EditProduct() {
     const [form] = Form.useForm();
@@ -18,15 +17,20 @@ function EditProduct() {
     const [category, setCategory] = useState([]);
     const [originalThumbnail, setOriginalThumbnail] = useState(null);
     const [reload, setReload] = useState(false);
-
-    const permissions = useAuth();
+    const [loading, setLoading] = useState(false);
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPI = async () => {
         const result = await getDetailProduct(params.id);
-        setData(result.product);
-        setOriginalThumbnail(result.product.thumbnail);
-        const result2 = await getCategory({ status: "active" });
-        setCategory(result2.category);
+        if (result.code === 200) {
+            setData(result.product);
+            setOriginalThumbnail(result.product.thumbnail);
+
+        }
+        const result2 = await getCategoryProduct();
+        if (result2.code === 200) {
+            setCategory(result2.category);
+        }
     };
 
     const handleReload = () => {
@@ -85,6 +89,7 @@ function EditProduct() {
 
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         const formData = new FormData();
 
         for (const key in data) {
@@ -134,6 +139,7 @@ function EditProduct() {
         } else {
             message.error("Cập nhật sản phẩm thất bại!");
         }
+        setLoading(false);
     };
 
     return (
@@ -158,14 +164,14 @@ function EditProduct() {
                             categoryId: ""
                         }}
                     >
-                        <div className="product__header">
-                            <h5 className="product__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Cập nhật sản phẩm
                             </h5>
 
                             <div className="product__buttons">
                                 <Form.Item className="product__form-item">
-                                    <Button type='primary' htmlType="submit">Cập nhật</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Cập nhật</Button>
                                 </Form.Item>
                             </div>
                         </div>

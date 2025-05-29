@@ -1,21 +1,23 @@
 import { Button, Form, Input, message, Select, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { checkImage } from "../../helper/checkImage";
-import { createAccount } from "../../services/accountServices";
+import { createAccount, getRoles } from "../../services/accountServices";
 import './Accounts.scss';
-import { getRoles } from "../../services/rolesServices";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function CreateAccount() {
     const [form] = Form.useForm();
     const [roles, setRoles] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPI = async () => {
         const result = await getRoles();
-        setRoles(result.roles);
+        if (result.code === 200) {
+            setRoles(result.roles);
+        }
     };
 
     useEffect(() => {
@@ -35,6 +37,7 @@ function CreateAccount() {
     ];
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         const formData = new FormData();
 
         for (const key in data) {
@@ -64,6 +67,7 @@ function CreateAccount() {
         } else {
             message.error("Tại tài khoản thất bại!");
         };
+        setLoading(false);
     };
 
     return (
@@ -80,14 +84,14 @@ function CreateAccount() {
                             role_id: ""
                         }}
                     >
-                        <div className="accounts__header">
-                            <h5 className="accounts__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Tạo tài khoản mới
                             </h5>
 
                             <div className="accounts__buttons">
                                 <Form.Item className="accounts__form-item">
-                                    <Button type='primary' htmlType="submit">Tạo tài khoản</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Tạo tài khoản</Button>
                                 </Form.Item>
                             </div>
                         </div>

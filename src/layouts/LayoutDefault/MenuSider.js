@@ -1,12 +1,10 @@
 import { Menu } from 'antd';
-import { DashboardOutlined, ProductOutlined, KeyOutlined, UserOutlined } from "@ant-design/icons";
+import { DashboardOutlined, ProductOutlined, KeyOutlined, UserOutlined, DeleteOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import useAuth from '../../helper/useAuth';
-import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 function MenuSider() {
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const items = [
         {
@@ -73,6 +71,75 @@ function MenuSider() {
                     {
                         key: 'accounts-create',
                         label: (<Link to={"/admin/accounts/create"}>Thêm tài khoản</Link>)
+                    }
+                ))
+            ]
+        },
+        {
+            key: "order",
+            label: "Đơn hàng",
+            icon: <ShoppingCartOutlined />,
+            children: [
+                (permissions.includes("order_view") && (
+                    {
+                        key: 'order_view',
+                        label: (<Link to={"/admin/order"}>Đơn hàng</Link>),
+                    }
+                )),
+            ]
+        },
+        {
+            key: "user",
+            label: "Người dùng",
+            icon: <UserOutlined />,
+            children: [
+                (permissions.includes("user_view") && (
+                    {
+                        key: 'user_view',
+                        label: (<Link to={"/admin/user"}>Người dùng</Link>),
+                    }
+                )),
+            ]
+        },
+        {
+            key: "trash",
+            label: "Thùng rác",
+            icon: <DeleteOutlined />,
+            children: [
+                (permissions.includes("products_trash") && (
+                    {
+                        key: 'products_trash',
+                        label: (<Link to={"/admin/products/trash"}>Sản phẩm</Link>),
+                    }
+                )),
+                (permissions.includes("products-category_trash") && (
+                    {
+                        key: 'products-category_trash',
+                        label: (<Link to={"/admin/products-category/trash"}>Danh mục</Link>)
+                    }
+                )),
+                (permissions.includes("roles_trash") && (
+                    {
+                        key: 'roles_trash',
+                        label: (<Link to={"/admin/roles/trash"}>Nhóm quyền</Link>)
+                    }
+                )),
+                (permissions.includes("accounts_trash") && (
+                    {
+                        key: 'accounts_trash',
+                        label: (<Link to={"/admin/accounts/trash"}>Tài khoản</Link>)
+                    }
+                )),
+                (permissions.includes("order_trash") && (
+                    {
+                        key: 'order_trash',
+                        label: (<Link to={"/admin/order/trash"}>Đơn hàng</Link>)
+                    }
+                )),
+                 (permissions.includes("user_trash") && (
+                    {
+                        key: 'user_trash',
+                        label: (<Link to={"/admin/user/trash"}>Người dùng</Link>)
                     }
                 ))
             ]

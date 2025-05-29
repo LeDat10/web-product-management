@@ -3,15 +3,16 @@ import { Input } from "antd";
 const { Search } = Input;
 
 function InputSearch(props) {
-    const { onSearch } = props;
+    const { placeholder, onSearch, defaultValue } = props;
     return (
         <>
             <div className='search'>
                 <Search
-                    placeholder="Tìm kiếm..."
+                    placeholder={placeholder || "Tìm kiếm..."}
                     allowClear
                     enterButton
                     onSearch={onSearch}
+                    defaultValue={defaultValue}
                 />
             </div>
         </>

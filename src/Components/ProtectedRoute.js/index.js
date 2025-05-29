@@ -1,13 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
-import Cookies from "js-cookie";
+import { useSelector } from "react-redux";
 
 function ProtectedRoute() {
-    const token = Cookies.get("token");
-    if (!token) {
-        return <Navigate to="/admin/login" replace />; // 🔄 Redirect đến login nếu không có token
+    const isAuthenticated = useSelector((state) => state.authAdminReducer.isAuthenticated);
+    if (!isAuthenticated) {
+        return <Navigate to="/admin/login" replace />;
     }
 
-    return <Outlet />; // ✅ Nếu có token, render các route con
+    return <Outlet />;
 };
 
 export default ProtectedRoute;

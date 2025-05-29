@@ -2,24 +2,30 @@ import { Button, Col, Form, Input, message, Row } from "antd";
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import './Login.scss';
 import { login } from "../../services/accountServices";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginAccountSuccess } from "../../actions/auth";
+import { useState } from "react";
 
 function Login() {
     const [form] = Form.useForm();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (value) => {
+        setLoading(true);
         const result = await login(value);
         if (result.code === 200) {
-            Cookies.set("token", result.token);
+            dispatch(loginAccountSuccess(result.token));
             navigate("/admin/dashboard");
-            message.success("Đăng nhập thành công!");
+            message.success(result.message);
         } else if (result.code === 401) {
-            message.error("Email hoặc mật khẩu đăng nhập không đúng!");
+            message.error(result.message);
         } else {
-            message.error("Đăng nhập thất bại!");
+            message.error(result.message);
         };
+        setLoading(false);
     };
 
     return (
@@ -66,7 +72,7 @@ function Login() {
                                 </Form.Item>
 
                                 <Form.Item>
-                                    <Button block type="primary" htmlType="submit">
+                                    <Button loading={loading} block type="primary" htmlType="submit">
                                         Đăng nhập
                                     </Button>
                                 </Form.Item>

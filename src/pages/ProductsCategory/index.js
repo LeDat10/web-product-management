@@ -1,5 +1,5 @@
-import { Button, Col, InputNumber, Row, Table, Tag } from "antd";
-import { Link } from "react-router-dom";
+import { Button, Col, InputNumber, Pagination, Row, Table, Tag } from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import './ProductsCategory.scss';
 import { useEffect, useState } from "react";
 import { deleteCategory, getCategory } from "../../services/categoryServices";
@@ -12,24 +12,47 @@ import Sort from "../../Components/Sort";
 import { changeMultiCategory } from "../../services/categoryServices";
 import ChangeMulti from "../../Components/ChangeMulti";
 import Delete from "../../Components/Delete";
-import useAuth from "../../helper/useAuth";
+import { useQueryParams } from "../../hooks/useQueryParams";
+import { useSelector } from "react-redux";
+import moment from "moment";
 
 function ProductsCategory() {
     const [data, setData] = useState([]);
     const [reload, setReload] = useState(false);
     const [positions, setPositions] = useState({});
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const queryParams = useQueryParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const limit = 10;
+    const [totalCategory, setTotalCategory] = useState(0);
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPI = async (params = {}) => {
         const result = await getCategory(params);
-        setData(result.category);
+        if (result.code === 200) {
+            setData(result.category);
+            setTotalCategory(result.totalCategory);
+        }
     }
 
     useEffect(() => {
-        fetchAPI();
-    }, [reload]);
+        const sortKey = queryParams.get('sortKey') || 'position';
+        const sortValue = queryParams.get('sortValue') || 'desc';
+        const keyword = queryParams.get('keyword') || '';
+        const status = queryParams.get('status') || '';
+        const page = queryParams.get('page') || 1;
+
+        fetchAPI({
+            sortKey: sortKey,
+            sortValue: sortValue,
+            keyword: keyword,
+            status: status,
+            page: page,
+            limit: limit
+        });
+    }, [reload, location.search]);
 
     const handleReload = () => {
         setReload(!reload);
@@ -72,6 +95,20 @@ function ProductsCategory() {
                 </>
             )
         },
+        {
+                    title: "Người cập nhật",
+                    dataIndex: "updatedBy",
+                    render: (value, record) => (
+                        <>
+                            {value && (
+                                <div className='time'>
+                                    <p>{value.accountFullName}</p>
+                                    <p>{moment(value.updatedAt).format('DD/MM/YYYY HH:mm:ss')}</p>
+                                </div>
+                            )}
+                        </>
+                    )
+                },
         {
             title: "Hành động",
             key: "actions",
@@ -155,35 +192,41 @@ function ProductsCategory() {
         }
     ];
 
-    const handleSearch = (keyword) => {
-        if (keyword) {
-            fetchAPI({
-                keyword: keyword
+    const handleFilterStatus = (status) => {
+        if (status === "all") {
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', "");
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
             });
         } else {
-            fetchAPI({
-                keyword: ""
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.set('status', status);
+            navigate({
+                pathname: location.pathname,
+                search: `?${queryParams.toString()}`
             });
         };
     };
 
-    const handleChangeStatus = (status) => {
-        if (status === "all") {
-            fetchAPI({
-                status: ""
-            });
-        } else {
-            fetchAPI({
-                status: status
-            });
-        };
+    const handleSearch = (keyword) => {
+        const queryParams = new URLSearchParams(location.search);
+        queryParams.set('keyword', keyword);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
+        });
     };
 
     const handleSort = (value) => {
         const [sortKey, sortValue] = value.split("-");
-        fetchAPI({
-            sortKey: sortKey,
-            sortValue: sortValue
+        const queryParams = new URLSearchParams(location.search);
+        queryParams.set('sortKey', sortKey);
+        queryParams.set('sortValue', sortValue);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
         });
     };
 
@@ -213,12 +256,22 @@ function ProductsCategory() {
         setSelectedRowKeys([]);
     };
 
+    const handleChangePagination = (page) => {
+        const queryParams = new URLSearchParams(location.search);
+
+        queryParams.set('page', page);
+        queryParams.set('limit', limit);
+        navigate({
+            pathname: location.pathname,
+            search: `?${queryParams.toString()}`
+        });
+    };
     return (
         <>
             {permissions.includes("products-category_view") && (
                 <div className="category">
-                    <div className="category__header">
-                        <h5 className="category__title">
+                    <div className="header-page">
+                        <h5 className="title-page">
                             Danh mục sản phẩm
                         </h5>
 
@@ -237,6 +290,7 @@ function ProductsCategory() {
                                     getSelectedProducts={getSelectedProducts}
                                     rowKeysEmpty={setRowKeysEmpty}
                                     changeMulti={changeMultiCategory}
+                                    textConfirm="Bạn có muốn xóa những danh mục này?"
                                 />
                             )}
                         </div>
@@ -245,20 +299,26 @@ function ProductsCategory() {
                     <div className='category__navigation'>
                         <Row className='row-height' gutter={20} align={'middle'}>
                             <Col span={6}>
-                                <InputSearch onSearch={handleSearch} />
+                                <InputSearch onSearch={handleSearch} defaultValue={queryParams.get('keyword') || ''} />
                             </Col>
                             <Col span={6}>
-                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleChangeStatus} />
+                                <FilterStatus filterStatusOptions={filterStatusOptions} handleChangeStatus={handleFilterStatus} defaultValue={queryParams.get('status') || ''} />
                             </Col>
                             <Col span={6}>
-                                <Sort sortOptions={sortOptions} handleSort={handleSort} />
+                                <Sort sortOptions={sortOptions} handleSort={handleSort} defaultValue={`${queryParams.get('sortKey') || "position"}-${queryParams.get('sortValue') || "desc"}`} />
                             </Col>
                         </Row>
                     </div>
 
                     <div className='category__list'>
-                        <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" />
+                        <Table rowSelection={rowSelection} columns={columns} dataSource={data} rowKey="_id" pagination={false} />
                     </div>
+
+                    <Row gutter={[20, 20]}>
+                        <Col span={24}>
+                            <Pagination onChange={handleChangePagination} className="pagination" align="center" defaultCurrent={queryParams.get('page')} total={totalCategory} pageSize={limit} />
+                        </Col>
+                    </Row>
                 </div>
             )}
         </>

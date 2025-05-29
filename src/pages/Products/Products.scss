@@ -3,21 +3,6 @@
 }
 
 .product {
-    &__header {
-        background-color: #fff;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 55px;
-        border-top: 1px solid #ddd;
-    }
-
-    &__title {
-        margin: 0px;
-        font-size: 17px;
-        padding: 10px 20px;
-    }
-
     &__buttons {
         padding: 0px 20px;
         flex: 1;
@@ -66,50 +51,21 @@
     }
 
     // Detail
-    &__inner-detail {
+    &__box {
+        padding: 20px;
         margin: 20px;
         background-color: #fff;
-        padding: 20px;
-    }
-
-    &__inner-title {
-        font-weight: 600;
-        font-size: 25px;
-        margin-bottom: 20px;
-    }
-
-    &__info-product {
-        padding: 15px 20px;
-        background-color: #E9EAF1;
-    }
-
-    &__info-header {
-        font-weight: 500;
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
-
-    &__status {
-        margin-bottom: 7px;
     }
 
     &__label {
+        font-size: 1rem;
         font-weight: 500;
-        font-size: 15px;
     }
 
     &__content {
-        font-weight: 700;
-        font-size: 15px;
-
-        &--active {
-            color: #49c938;
-        }
-
-        &--inactive {
-            color: rgba(238, 0, 0, 0.938);
-        }
+        font-size: 1rem;
     }
+
     // End Detail
 }
 

@@ -3,17 +3,15 @@ import { SettingFilled } from "@ant-design/icons";
 import './Roles.scss';
 import { setPermissions } from "../../services/rolesServices";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { reload } from "../../actions/reload";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function Permissions(props) {
     const { record } = props;
     const [open, setOpen] = useState(false);
     const [checkedKeys, setCheckedKeys] = useState([]);
-    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const showDrawer = () => {
         setOpen(true);
@@ -43,6 +41,18 @@ function Permissions(props) {
                 {
                     title: 'Xóa',
                     key: 'products_delete',
+                },
+                {
+                    title: "Thùng rác",
+                    key: "products_trash"
+                },
+                {
+                    title: "Khôi phục",
+                    key: "products_restore"
+                },
+                {
+                    title: "Xóa vĩnh viễn",
+                    key: "products_delete-permanently"
                 }
             ],
         },
@@ -65,6 +75,18 @@ function Permissions(props) {
                 {
                     title: 'Xóa',
                     key: 'products-category_delete',
+                },
+                {
+                    title: "Thùng rác",
+                    key: "products-category_trash"
+                },
+                {
+                    title: "Khôi phục",
+                    key: "products-category_restore"
+                },
+                {
+                    title: "Xóa vĩnh viễn",
+                    key: "products-category_delete-permanently"
                 }
             ],
         },
@@ -91,10 +113,21 @@ function Permissions(props) {
                 {
                     title: 'Phân quyền',
                     key: 'roles_permissions',
+                },
+                {
+                    title: "Thùng rác",
+                    key: "roles_trash"
+                },
+                {
+                    title: "Khôi phục",
+                    key: "roles_restore"
+                },
+                {
+                    title: "Xóa vĩnh viễn",
+                    key: "roles_delete-permanently"
                 }
             ],
         },
-        ,
         {
             title: <b>Tài khoản</b>,
             key: "accounts",
@@ -114,6 +147,86 @@ function Permissions(props) {
                 {
                     title: 'Xóa',
                     key: 'accounts_delete',
+                },
+                {
+                    title: "Thùng rác",
+                    key: "accounts_trash"
+                },
+                {
+                    title: "Khôi phục",
+                    key: "accounts_restore"
+                },
+                {
+                    title: "Xóa vĩnh viễn",
+                    key: "accounts_delete-permanently"
+                }
+            ],
+        },
+        {
+            title: <b>Đơn hàng</b>,
+            key: "order",
+            children: [
+                {
+                    title: 'Xem',
+                    key: 'order_view',
+                },
+                {
+                    title: 'Thêm mới',
+                    key: 'order_create',
+                },
+                {
+                    title: 'Chỉnh sửa',
+                    key: 'order_edit',
+                },
+                {
+                    title: 'Xóa',
+                    key: 'order_delete',
+                },
+                {
+                    title: "Thùng rác",
+                    key: "order_trash"
+                },
+                {
+                    title: "Khôi phục",
+                    key: "order_restore"
+                },
+                {
+                    title: "Xóa vĩnh viễn",
+                    key: "order_delete-permanently"
+                }
+            ],
+        },
+        {
+            title: <b>Người dùng</b>,
+            key: "user",
+            children: [
+                {
+                    title: 'Xem',
+                    key: 'user_view',
+                },
+                {
+                    title: 'Thêm mới',
+                    key: 'user_create',
+                },
+                {
+                    title: 'Chỉnh sửa',
+                    key: 'user_edit',
+                },
+                {
+                    title: 'Xóa',
+                    key: 'user_delete',
+                },
+                {
+                    title: "Thùng rác",
+                    key: "user_trash"
+                },
+                {
+                    title: "Khôi phục",
+                    key: "user_restore"
+                },
+                {
+                    title: "Xóa vĩnh viễn",
+                    key: "user_delete-permanently"
                 }
             ],
         },
@@ -124,6 +237,7 @@ function Permissions(props) {
     };
 
     const handleClick = async () => {
+        setLoading(true);
         const filteredKeys = checkedKeys.filter(
             (key) => !treeData.some((node) => node.key === key)
         );
@@ -133,11 +247,11 @@ function Permissions(props) {
         });
 
         if (result.code === 200) {
-            message.success("Cập nhật phân quyền thành công!");
-            dispatch(reload());
+            message.success(result.message);
         } else {
-            message.error("Cập nhật phân quyền thất bại!");
-        }
+            message.error(result.message);
+        };
+        setLoading(false);
     };
 
     return (
@@ -153,7 +267,7 @@ function Permissions(props) {
                         onClose={onClose}
                         open={open}
                         extra={
-                            <Button type="primary" onClick={handleClick}>
+                            <Button loading={loading} type="primary" onClick={handleClick}>
                                 Cập nhật
                             </Button>
                         }

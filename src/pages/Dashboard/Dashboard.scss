@@ -1,0 +1,11 @@
+.dashboard {
+    margin: 20px;
+    &__label {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    &__content {
+        font-size: 1rem;
+    }
+}

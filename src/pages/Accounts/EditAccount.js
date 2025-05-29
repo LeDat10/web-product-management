@@ -1,12 +1,11 @@
 import { Button, Form, Input, message, Select, Switch, Upload } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { checkImage } from "../../helper/checkImage";
 import { processThumbnail } from "../../helper/processThumbnail";
-import { getRoles } from "../../services/rolesServices";
-import { editAccount, getDetailAccount } from "../../services/accountServices";
-import useAuth from "../../helper/useAuth";
+import { editAccount, getDetailAccount, getRoles } from "../../services/accountServices";
+import { useSelector } from "react-redux";
 
 function EditAccount() {
     const [form] = Form.useForm();
@@ -15,11 +14,15 @@ function EditAccount() {
     const [roles, setRoles] = useState([]);
     const [originalThumbnail, setOriginalThumbnail] = useState(null);
     const [reload, setReload] = useState(false);
-    const permissions = useAuth();
+    const [loading, setLoading] = useState(false);
+
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPIRole = async () => {
         const result = await getRoles();
-        setRoles(result.roles);
+        if (result.code === 200) {
+            setRoles(result.roles);
+        }
     };
 
     const handleReload = () => {
@@ -75,6 +78,7 @@ function EditAccount() {
     }, [data]);
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         const formData = new FormData();
 
         for (const key in data) {
@@ -110,11 +114,12 @@ function EditAccount() {
 
         const result = await editAccount(params.id, formData);
         if (result.code === 200) {
-            message.success("Cập nhật tài khoản thành công!");
+            message.success(result.message);
             handleReload();
         } else {
-            message.error("Cập nhật tài khoản thất bại!");
+            message.error(result.message);
         }
+        setLoading(false);
     };
     return (
         <>
@@ -126,14 +131,14 @@ function EditAccount() {
                         layout="vertical"
                         onFinish={handleSubmit}
                     >
-                        <div className="accounts__header">
-                            <h5 className="accounts__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Chỉnh sửa thông tin
                             </h5>
 
                             <div className="accounts__buttons">
                                 <Form.Item className="accounts__form-item">
-                                    <Button type='primary' htmlType="submit">Cập nhật</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Cập nhật</Button>
                                 </Form.Item>
                             </div>
                         </div>

@@ -2,7 +2,7 @@ import { Select } from 'antd';
 import './FilterStatus.scss';
 
 function FilterStatus(props) {
-    const { filterStatusOptions, handleChangeStatus } = props;
+    const { filterStatusOptions, handleChangeStatus, defaultValue } = props;
 
     return (
         <>
@@ -10,7 +10,7 @@ function FilterStatus(props) {
                 <Select
                     className='filter-status__select'
                     options={filterStatusOptions}
-                    defaultValue={""}
+                    defaultValue={defaultValue}
                     onChange={handleChangeStatus}
                 />
             </div>

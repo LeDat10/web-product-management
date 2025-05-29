@@ -3,15 +3,17 @@ import { useState } from "react";
 import './ChangeMulti.scss';
 
 function ChangeMulti(props) {
-    const {changeMultiOption, onReload, selectedRowKeys, getSelectedProducts, rowKeysEmpty, changeMulti} = props;
+    const {changeMultiOption, onReload, selectedRowKeys, getSelectedProducts, rowKeysEmpty, changeMulti, textConfirm} = props;
 
     const [keyAction, setKeyAction] = useState("");
+    const [loading ,setLoading] = useState(false);
 
     const handleChangeMulti = (value) => {
         setKeyAction(value);
     };
 
     const handleClickChangeMulti = async () => {
+        setLoading(true);
         if (keyAction === "position") {
             const ids = getSelectedProducts();
             const result = await changeMulti({
@@ -20,11 +22,11 @@ function ChangeMulti(props) {
             });
 
             if (result.code === 200) {
-                message.success(`Cập nhật vị trí của ${ids.length} sản phẩm thành công!`);
+                message.success(result.message || "");
                 rowKeysEmpty();
                 onReload();
             } else {
-                message.error(`Cập nhật vị trí của ${ids.length} sản phẩm thất bại!`);
+                message.error(result.message || "");
             }
         } else if (keyAction === "delete-all") {
             const result = await changeMulti({
@@ -33,12 +35,12 @@ function ChangeMulti(props) {
             });
 
             if (result.code === 200) {
-                message.success(`Xóa thành công ${selectedRowKeys.length} sản phẩm!`);
+                message.success(result.message || "");
                 rowKeysEmpty();
                 onReload();
 
             } else {
-                message.error(`Xóa thất bại ${selectedRowKeys.length} sản phẩm!`);
+                message.error(result.message || "");
             }
         } else {
             const result = await changeMulti({
@@ -47,14 +49,15 @@ function ChangeMulti(props) {
             });
 
             if (result.code === 200) {
-                message.success(`Cập nhật trạng thái của ${selectedRowKeys.length} sản phẩm thành công!`);
+                message.success(result.message || "");
                 rowKeysEmpty();
                 onReload();
 
             } else {
-                message.error(`Cập nhật trạng thái của ${selectedRowKeys.length} sản phẩm thất bại!`);
+                message.error(result.message || "");
             }
         };
+        setLoading(false);
     };
     return (
         <>
@@ -66,15 +69,15 @@ function ChangeMulti(props) {
                 {
                     keyAction === "delete-all" ? (
                         <Popconfirm
-                            title="Bạn có muốn xóa những sản phẩm này?"
+                            title={textConfirm || ""}
                             okText="Đồng ý"
                             cancelText="Không"
                             onConfirm={handleClickChangeMulti}
                         >
-                            <Button type='primary'>Áp dụng</Button>
+                            <Button loading={loading} type='primary'>Áp dụng</Button>
                         </Popconfirm>
                     ) : (
-                        <Button type='primary' onClick={handleClickChangeMulti}>Áp dụng</Button>
+                        <Button loading={loading} type='primary' onClick={handleClickChangeMulti}>Áp dụng</Button>
                     )
                 }
             </div>

@@ -7,7 +7,7 @@ import { checkImage } from "../../helper/checkImage";
 import { getDetailCategory, editCategory } from "../../services/categoryServices";
 import { handlePickerCallback } from "../../helper/handlePickerCallback";
 import { processThumbnail } from "../../helper/processThumbnail";
-import useAuth from "../../helper/useAuth";
+import { useSelector } from "react-redux";
 
 function EditCategory() {
     const [form] = Form.useForm();
@@ -16,13 +16,16 @@ function EditCategory() {
     const params = useParams();
     const [reload, setReload] = useState(false);
     const [originalThumbnail, setOriginalThumbnail] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    const permissions = useAuth();
+    const { permissions } = useSelector((state) => state.authAdminReducer);
 
     const fetchAPI = async () => {
         const result = await getDetailCategory(params.id);
-        setData(result.category);
-        setOriginalThumbnail(result.category.thumbnail);
+        if (result.code === 200) {
+            setData(result.category);
+            setOriginalThumbnail(result.category.thumbnail);
+        }
     };
 
     const handleReload = () => {
@@ -57,6 +60,7 @@ function EditCategory() {
     }, [data]);
 
     const handleSubmit = async (data) => {
+        setLoading(true);
         const formData = new FormData();
 
         for (const key in data) {
@@ -100,6 +104,7 @@ function EditCategory() {
         } else {
             message.error("Cập nhật danh mục thất bại!");
         }
+        setLoading(false);
     };
 
     return (
@@ -121,14 +126,14 @@ function EditCategory() {
 
                         }}
                     >
-                        <div className="category__header">
-                            <h5 className="product__title">
+                        <div className="header-page">
+                            <h5 className="title-page">
                                 Chỉnh sửa danh mục
                             </h5>
 
                             <div className="category__buttons">
                                 <Form.Item className="category__form-item">
-                                    <Button type='primary' htmlType="submit">Cập nhật</Button>
+                                    <Button loading={loading} type='primary' htmlType="submit">Cập nhật</Button>
                                 </Form.Item>
                             </div>
                         </div>
