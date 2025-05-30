@@ -49,6 +49,8 @@ function Accounts() {
         });
     }, [reload, location.search]);
 
+    console.log(data);
+
     const columns = [
         {
             title: "STT",

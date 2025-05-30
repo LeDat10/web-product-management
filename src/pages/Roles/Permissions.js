@@ -171,10 +171,6 @@ function Permissions(props) {
                     key: 'order_view',
                 },
                 {
-                    title: 'Thêm mới',
-                    key: 'order_create',
-                },
-                {
                     title: 'Chỉnh sửa',
                     key: 'order_edit',
                 },
@@ -203,10 +199,6 @@ function Permissions(props) {
                 {
                     title: 'Xem',
                     key: 'user_view',
-                },
-                {
-                    title: 'Thêm mới',
-                    key: 'user_create',
                 },
                 {
                     title: 'Chỉnh sửa',

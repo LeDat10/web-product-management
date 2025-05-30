@@ -31,8 +31,10 @@ function EditAccount() {
 
     const fetchAPIAccount = async () => {
         const result = await getDetailAccount(params.id);
-        setData(result.account);
-        setOriginalThumbnail(result.account.avatar);
+        if (result.code === 200) {
+            setData(result.account);
+            setOriginalThumbnail(result.account?.avatar);
+        }
     };
 
     useEffect(() => {
